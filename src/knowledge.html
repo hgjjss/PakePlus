@@ -1,0 +1,341 @@
+
+<!-- public_employment_service_platform/frontend/knowledge.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>知识图谱 - 公共就业服务平台</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .card {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+    }
+    .knowledge-graph {
+      width: 100%;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .node {
+      position: absolute;
+      background: rgba(79, 172, 254, 0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .node:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+    }
+    .connection {
+      position: absolute;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.5);
+      transform-origin: 0 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js" class="particles"></div>
+  
+  <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-white">知识图谱</h1>
+          <p class="text-gray-300">可视化展示行业知识网络</p>
+        </div>
+        <button onclick="window.location.href='main.html'" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+          返回首页
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div class="card p-6 rounded-xl">
+          <div class="flex items-center mb-4">
+            <div class="bg-blue-500 bg-opacity-20 p-3 rounded-full mr-4">
+              <span class="text-2xl">🔍</span>
+            </div>
+            <h2 class="text-xl font-semibold text-white">行业分析</h2>
+          </div>
+          <p class="text-gray-300 mb-4">了解各行业发展趋势和就业机会</p>
+          <button onclick="showGraph('industry')" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition duration-300 w-full">
+            查看图谱
+          </button>
+        </div>
+        
+        <div class="card p-6 rounded-xl">
+          <div class="flex items-center mb-4">
+            <div class="bg-green-500 bg-opacity-20 p-3 rounded-full mr-4">
+              <span class="text-2xl">🧑‍🎓</span>
+            </div>
+            <h2 class="text-xl font-semibold text-white">职业路径</h2>
+          </div>
+          <p class="text-gray-300 mb-4">探索不同职业的发展路径和技能要求</p>
+          <button onclick="showGraph('career')" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition duration-300 w-full">
+            查看图谱
+          </button>
+        </div>
+        
+        <div class="card p-6 rounded-xl">
+          <div class="flex items-center mb-4">
+            <div class="bg-purple-500 bg-opacity-20 p-3 rounded-full mr-4">
+              <span class="text-2xl">📚</span>
+            </div>
+            <h2 class="text-xl font-semibold text-white">技能关联</h2>
+          </div>
+          <p class="text-gray-300 mb-4">发现技能之间的关联性和组合价值</p>
+          <button onclick="showGraph('skill')" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition duration-300 w-full">
+            查看图谱
+          </button>
+        </div>
+      </div>
+      
+      <div class="card p-6 rounded-xl mb-8">
+        <h2 class="text-xl font-semibold text-white mb-4">知识图谱可视化</h2>
+        <div id="knowledge-graph" class="knowledge-graph">
+          <div id="graph-container" class="w-full h-full flex items-center justify-center">
+            <p class="text-gray-300">请选择上方图谱类型进行查看</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card p-6 rounded-xl">
+        <h2 class="text-xl font-semibold text-white mb-4">知识搜索</h2>
+        <form id="search-form" class="space-y-4">
+          <div>
+            <label for="search-term" class="block text-sm font-medium text-white mb-1">搜索关键词</label>
+            <input type="text" id="search-term" class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-transparent focus:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-300">
+          </div>
+          
+          <div>
+            <label for="search-type" class="block text-sm font-medium text-white mb-1">搜索类型</label>
+            <select id="search-type" class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-transparent focus:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white">
+              <option value="all">全部</option>
+              <option value="industry">行业</option>
+              <option value="career">职业</option>
+              <option value="skill">技能</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+            搜索知识
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    // 粒子效果初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#ffffff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+          move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "repulse" },
+            onclick: { enable: true, mode: "push" }
+          }
+        }
+      });
+
+      // 检查登录状态
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      if (isLoggedIn !== 'true') {
+        window.location.href = 'login.html';
+      }
+
+      // 表单提交处理
+      document.getElementById('search-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const term = document.getElementById('search-term').value;
+        const type = document.getElementById('search-type').value;
+        
+        if (!term) {
+          alert('请输入搜索关键词');
+          return;
+        }
+        
+        alert(`正在搜索${type === 'all' ? '全部' : type}类型的知识：${term}`);
+      });
+    });
+
+    // 显示知识图谱
+    function showGraph(type) {
+      const graphContainer = document.getElementById('graph-container');
+      graphContainer.innerHTML = '';
+      
+      // 模拟加载
+      const loading = document.createElement('div');
+      loading.className = 'flex flex-col items-center justify-center';
+      loading.innerHTML = `
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+        <p class="text-white">正在加载${getGraphName(type)}知识图谱...</p>
+      `;
+      graphContainer.appendChild(loading);
+      
+      // 模拟生成图谱
+      setTimeout(() => {
+        generateGraph(type);
+      }, 1500);
+    }
+
+    // 生成知识图谱
+    function generateGraph(type) {
+      const graphContainer = document.getElementById('graph-container');
+      graphContainer.innerHTML = '';
+      
+      // 创建节点和连接
+      const nodes = [];
+      const connections = [];
+      
+      // 根据不同类型生成不同图谱
+      if (type === 'industry') {
+        nodes.push({ id: 'it', name: 'IT', x: 50, y: 50, size: 80 });
+        nodes.push({ id: 'finance', name: '金融', x: 30, y: 70, size: 70 });
+        nodes.push({ id: 'education', name: '教育', x: 70, y: 30, size: 60 });
+        nodes.push({ id: 'health', name: '医疗', x: 20, y: 30, size: 50 });
+        nodes.push({ id: 'manufacture', name: '制造', x: 80, y: 70, size: 60 });
+        
+        connections.push({ from: 'it', to: 'finance', strength: 0.7 });
+        connections.push({ from: 'it', to: 'education', strength: 0.8 });
+        connections.push({ from: 'finance', to: 'health', strength: 0.5 });
+        connections.push({ from: 'education', to: 'health', strength: 0.6 });
+        connections.push({ from: 'manufacture', to: 'it', strength: 0.9 });
+      } 
+      else if (type === 'career') {
+        nodes.push({ id: 'developer', name: '开发者', x: 50, y: 50, size: 80 });
+        nodes.push({ id: 'designer', name: '设计师', x: 30, y: 70, size: 70 });
+        nodes.push({ id: 'manager', name: '经理', x: 70, y: 30, size: 60 });
+        nodes.push({ id: 'analyst', name: '分析师', x: 20, y: 30, size: 50 });
+        nodes.push({ id: 'consultant', name: '顾问', x: 80, y: 70, size: 60 });
+        
+        connections.push({ from: 'developer', to: 'designer', strength: 0.7 });
+        connections.push({ from: 'developer', to: 'manager', strength: 0.6 });
+        connections.push({ from: 'designer', to: 'manager', strength: 0.8 });
+        connections.push({ from: 'analyst', to: 'consultant', strength: 0.9 });
+        connections.push({ from: 'manager', to: 'consultant', strength: 0.7 });
+      }
+      else if (type === 'skill') {
+        nodes.push({ id: 'programming', name: '编程', x: 50, y: 50, size: 80 });
+        nodes.push({ id: 'design', name: '设计', x: 30, y: 70, size: 70 });
+        nodes.push({ id: 'analysis', name: '分析', x: 70, y: 30, size: 60 });
+        nodes.push({ id: 'communication', name: '沟通', x: 20, y: 30, size: 50 });
+        nodes.push({ id: 'management', name: '管理', x: 80, y: 70, size: 60 });
+        
+        connections.push({ from: 'programming', to: 'design', strength: 0.6 });
+        connections.push({ from: 'programming', to: 'analysis', strength: 0.9 });
+        connections.push({ from: 'design', to: 'communication', strength: 0.8 });
+        connections.push({ from: 'analysis', to: 'management', strength: 0.7 });
+        connections.push({ from: 'communication', to: 'management', strength: 0.8 });
+      }
+      
+      // 渲染节点
+      const graphWidth = document.getElementById('knowledge-graph').clientWidth;
+      const graphHeight = document.getElementById('knowledge-graph').clientHeight;
+      
+      nodes.forEach(node => {
+        const nodeElement = document.createElement('div');
+        nodeElement.className = 'node';
+        nodeElement.id = node.id;
+        nodeElement.textContent = node.name;
+        nodeElement.style.width = `${node.size}px`;
+        nodeElement.style.height = `${node.size}px`;
+        nodeElement.style.left = `${node.x * graphWidth / 100 - node.size/2}px`;
+        nodeElement.style.top = `${node.y * graphHeight / 100 - node.size/2}px`;
+        nodeElement.style.fontSize = `${Math.max(12, node.size/4)}px`;
+        
+        nodeElement.addEventListener('click', () => {
+          alert(`点击了节点: ${node.name}`);
+        });
+        
+        graphContainer.appendChild(nodeElement);
+      });
+      
+      // 渲染连接线
+      connections.forEach(conn => {
+        const fromNode = document.getElementById(conn.from);
+        const toNode = document.getElementById(conn.to);
+        
+        if (fromNode && toNode) {
+          const fromRect = fromNode.getBoundingClientRect();
+          const toRect = toNode.getBoundingClientRect();
+          const graphRect = document.getElementById('knowledge-graph').getBoundingClientRect();
+          
+          const fromX = fromRect.left + fromRect.width/2 - graphRect.left;
+          const fromY = fromRect.top + fromRect.height/2 - graphRect.top;
+          const toX = toRect.left + toRect.width/2 - graphRect.left;
+          const toY = toRect.top + toRect.height/2 - graphRect.top;
+          
+          const length = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
+          const angle = Math.atan2(toY - fromY, toX - fromX) * 180 / Math.PI;
+          
+          const connection = document.createElement('div');
+          connection.className = 'connection';
+          connection.style.width = `${length}px`;
+          connection.style.left = `${fromX}px`;
+          connection.style.top = `${fromY}px`;
+          connection.style.transform = `rotate(${angle}deg)`;
+          connection.style.opacity = conn.strength;
+          
+          graphContainer.appendChild(connection);
+        }
+      });
+    }
+
+    function getGraphName(type) {
+      const names = {
+        'industry': '行业分析',
+        'career': '职业路径',
+        'skill': '技能关联'
+      };
+      return names[type] || '知识';
+    }
+  </script>
+</body>
+</html>
