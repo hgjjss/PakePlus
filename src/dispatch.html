@@ -1,0 +1,224 @@
+
+<!-- public_employment_service_platform/frontend/dispatch.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>智能业务分派 - 公共就业服务平台</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .card {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+    }
+    .progress-bar {
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+      transition: width 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js" class="particles"></div>
+  
+  <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-white">智能业务分派</h1>
+          <p class="text-gray-300">根据您的需求智能匹配最佳业务方案</p>
+        </div>
+        <button onclick="window.location.href='main.html'" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+          返回首页
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="card p-6 rounded-xl">
+          <h2 class="text-xl font-semibold text-white mb-4">业务需求分析</h2>
+          <form id="dispatch-form" class="space-y-4">
+            <div>
+              <label for="business-type" class="block text-sm font-medium text-white mb-1">业务类型</label>
+              <select id="business-type" class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-transparent focus:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white">
+                <option value="employment">就业服务</option>
+                <option value="training">职业培训</option>
+                <option value="consulting">职业咨询</option>
+                <option value="policy">政策咨询</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="urgency" class="block text-sm font-medium text-white mb-1">紧急程度</label>
+              <div class="flex items-center space-x-4">
+                <label class="inline-flex items-center">
+                  <input type="radio" name="urgency" value="low" class="form-radio text-blue-500" checked>
+                  <span class="ml-2 text-white">普通</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="radio" name="urgency" value="medium" class="form-radio text-blue-500">
+                  <span class="ml-2 text-white">中等</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="radio" name="urgency" value="high" class="form-radio text-blue-500">
+                  <span class="ml-2 text-white">紧急</span>
+                </label>
+              </div>
+            </div>
+            
+            <div>
+              <label for="description" class="block text-sm font-medium text-white mb-1">需求描述</label>
+              <textarea id="description" rows="4" class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-transparent focus:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-300"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+              智能分派
+            </button>
+          </form>
+        </div>
+        
+        <div class="card p-6 rounded-xl">
+          <h2 class="text-xl font-semibold text-white mb-4">分派结果</h2>
+          <div id="result-container" class="hidden">
+            <div class="mb-6">
+              <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-white">匹配度</span>
+                <span id="match-percentage" class="text-sm font-medium text-white">75%</span>
+              </div>
+              <div class="w-full bg-gray-700 rounded-full h-2.5">
+                <div id="progress-bar" class="progress-bar h-2.5 rounded-full" style="width: 75%"></div>
+              </div>
+            </div>
+            
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-medium text-white mb-2">推荐方案</h3>
+                <p id="recommendation" class="text-gray-300 bg-white bg-opacity-10 p-4 rounded-lg">根据您的需求，我们推荐您联系就业服务中心的李顾问，他擅长处理类似案例。</p>
+              </div>
+              
+              <div>
+                <h3 class="text-lg font-medium text-white mb-2">预计处理时间</h3>
+                <p id="processing-time" class="text-gray-300 bg-white bg-opacity-10 p-4 rounded-lg">1-3个工作日</p>
+              </div>
+              
+              <div>
+                <h3 class="text-lg font-medium text-white mb-2">联系方式</h3>
+                <p id="contact-info" class="text-gray-300 bg-white bg-opacity-10 p-4 rounded-lg">电话: 123-4567-8910<br>邮箱: li.advisor@service.com</p>
+              </div>
+            </div>
+          </div>
+          
+          <div id="empty-state" class="flex flex-col items-center justify-center py-12">
+            <div class="bg-blue-500 bg-opacity-20 p-4 rounded-full mb-4">
+              <span class="text-3xl">🔍</span>
+            </div>
+            <h3 class="text-lg font-medium text-white mb-2">等待分析</h3>
+            <p class="text-gray-300 text-center">请填写业务需求并点击"智能分派"按钮，系统将为您匹配最佳解决方案。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    // 粒子效果初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#ffffff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+          move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "repulse" },
+            onclick: { enable: true, mode: "push" }
+          }
+        }
+      });
+
+      // 检查登录状态
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      if (isLoggedIn !== 'true') {
+        window.location.href = 'login.html';
+      }
+
+      // 表单提交处理
+      document.getElementById('dispatch-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const businessType = document.getElementById('business-type').value;
+        const urgency = document.querySelector('input[name="urgency"]:checked').value;
+        const description = document.getElementById('description').value;
+        
+        // 模拟智能分派处理
+        setTimeout(() => {
+          const matchPercentage = Math.floor(Math.random() * 30) + 70; // 70-100%
+          const recommendations = [
+            "根据您的需求，我们推荐您联系就业服务中心的李顾问，他擅长处理类似案例。",
+            "系统建议您参加下周的职业培训课程，这将有助于解决您的问题。",
+            "我们为您匹配了政策咨询专家王老师，他可以帮助您了解相关政策。",
+            "推荐您使用我们的在线就业指导平台，提供24小时自助服务。"
+          ];
+          const processingTimes = [
+            "1-3个工作日",
+            "立即处理",
+            "3-5个工作日",
+            "24小时内"
+          ];
+          const contacts = [
+            "电话: 123-4567-8910<br>邮箱: li.advisor@service.com",
+            "电话: 123-4567-8911<br>邮箱: training@service.com",
+            "电话: 123-4567-8912<br>邮箱: wang.advisor@service.com",
+            "网址: online.service.com"
+          ];
+          
+          const randomIndex = Math.floor(Math.random() * recommendations.length);
+          
+          document.getElementById('match-percentage').textContent = `${matchPercentage}%`;
+          document.getElementById('progress-bar').style.width = `${matchPercentage}%`;
+          document.getElementById('recommendation').innerHTML = recommendations[randomIndex];
+          document.getElementById('processing-time').textContent = processingTimes[randomIndex];
+          document.getElementById('contact-info').innerHTML = contacts[randomIndex];
+          
+          document.getElementById('result-container').classList.remove('hidden');
+          document.getElementById('empty-state').classList.add('hidden');
+        }, 1500);
+      });
+    });
+  </script>
+</body>
+</html>
