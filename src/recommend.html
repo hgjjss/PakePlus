@@ -1,0 +1,254 @@
+
+<!-- public_employment_service_platform/frontend/recommend.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>智能推荐 - 公共就业服务平台</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .card {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+    }
+    .recommend-item {
+      border-left: 4px solid #4facfe;
+    }
+    .match-badge {
+      background: rgba(79, 172, 254, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js" class="particles"></div>
+  
+  <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-white">智能推荐</h1>
+          <p class="text-gray-300">基于AI算法为您推荐最佳方案</p>
+        </div>
+        <button onclick="window.location.href='main.html'" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+          返回首页
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="card p-6 rounded-xl">
+          <h2 class="text-xl font-semibold text-white mb-4">推荐偏好设置</h2>
+          <form id="preference-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-white mb-2">您最关注的领域</label>
+              <div class="grid grid-cols-2 gap-4">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" name="interest" value="employment" class="form-checkbox text-blue-500" checked>
+                  <span class="ml-2 text-white">就业服务</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="checkbox" name="interest" value="training" class="form-checkbox text-blue-500">
+                  <span class="ml-2 text-white">职业培训</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="checkbox" name="interest" value="finance" class="form-checkbox text-blue-500">
+                  <span class="ml-2 text-white">融资服务</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="checkbox" name="interest" value="mentor" class="form-checkbox text-blue-500">
+                  <span class="ml-2 text-white">导师服务</span>
+                </label>
+              </div>
+            </div>
+            
+            <div>
+              <label for="priority" class="block text-sm font-medium text-white mb-1">推荐优先级</label>
+              <select id="priority" class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-transparent focus:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white">
+                <option value="relevance">相关性优先</option>
+                <option value="popularity">热度优先</option>
+                <option value="newest">最新优先</option>
+              </select>
+            </div>
+            
+            <button type="submit" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+              更新推荐
+            </button>
+          </form>
+        </div>
+        
+        <div class="card p-6 rounded-xl">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-white">为您推荐</h2>
+            <div class="text-sm text-gray-300">基于您的偏好和浏览历史</div>
+          </div>
+          
+          <div id="recommendations-container" class="space-y-4">
+            <div class="recommend-item pl-4 py-3">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-medium text-white">就业服务中心 - 李顾问</h3>
+                <span class="match-badge text-xs text-white px-2 py-1 rounded-full">匹配度 92%</span>
+              </div>
+              <p class="text-gray-300 mb-2">擅长职业规划和简历优化，10年人力资源经验</p>
+              <button onclick="viewDetail('mentor', '李顾问')" class="btn-primary text-white text-sm font-bold py-1 px-3 rounded-lg transition duration-300">
+                查看详情
+              </button>
+            </div>
+            
+            <div class="recommend-item pl-4 py-3">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-medium text-white">创业贷款方案</h3>
+                <span class="match-badge text-xs text-white px-2 py-1 rounded-full">匹配度 85%</span>
+              </div>
+              <p class="text-gray-300 mb-2">最高50万元，期限3年，利率4.35%起</p>
+              <button onclick="viewDetail('finance', '创业贷款')" class="btn-primary text-white text-sm font-bold py-1 px-3 rounded-lg transition duration-300">
+                查看详情
+              </button>
+            </div>
+            
+            <div class="recommend-item pl-4 py-3">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-medium text-white">全栈开发培训课程</h3>
+                <span class="match-badge text-xs text-white px-2 py-1 rounded-full">匹配度 78%</span>
+              </div>
+              <p class="text-gray-300 mb-2">3个月强化培训，包含前端和后端开发技术</p>
+              <button onclick="viewDetail('training', '全栈开发')" class="btn-primary text-white text-sm font-bold py-1 px-3 rounded-lg transition duration-300">
+                查看详情
+              </button>
+            </div>
+          </div>
+          
+          <div id="loading-state" class="hidden flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <span class="ml-3 text-white">正在为您智能推荐...</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card p-6 rounded-xl mt-8">
+        <h2 class="text-xl font-semibold text-white mb-4">推荐反馈</h2>
+        <form id="feedback-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-white mb-2">这些推荐对您有帮助吗？</label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="helpful" value="yes" class="form-radio text-blue-500">
+                <span class="ml-2 text-white">有帮助</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="helpful" value="somewhat" class="form-radio text-blue-500">
+                <span class="ml-2 text-white">一般</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="helpful" value="no" class="form-radio text-blue-500">
+                <span class="ml-2 text-white">没帮助</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <label for="feedback-detail" class="block text-sm font-medium text-white mb-1">具体反馈意见</label>
+            <textarea id="feedback-detail" rows="3" class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-transparent focus:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-300"></textarea>
+          </div>
+          
+          <button type="submit" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+            提交反馈
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    // 粒子效果初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#ffffff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+          move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "repulse" },
+            onclick: { enable: true, mode: "push" }
+          }
+        }
+      });
+
+      // 检查登录状态
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      if (isLoggedIn !== 'true') {
+        window.location.href = 'login.html';
+      }
+
+      // 表单提交处理
+      document.getElementById('preference-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        updateRecommendations();
+      });
+
+      document.getElementById('feedback-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('感谢您的反馈，这将帮助我们改进推荐算法！');
+        this.reset();
+      });
+    });
+
+    // 更新推荐
+    function updateRecommendations() {
+      const recommendationsContainer = document.getElementById('recommendations-container');
+      const loadingState = document.getElementById('loading-state');
+      
+      recommendationsContainer.classList.add('hidden');
+      loadingState.classList.remove('hidden');
+      
+      // 模拟推荐算法处理
+      setTimeout(() => {
+        loadingState.classList.add('hidden');
+        recommendationsContainer.classList.remove('hidden');
+        
+        // 这里可以添加根据用户偏好更新推荐内容的逻辑
+        alert('推荐内容已根据您的偏好更新！');
+      }, 2000);
+    }
+
+    // 查看详情
+    function viewDetail(type, name) {
+      alert(`正在跳转到${name}的详情页面...`);
+      // 实际应用中这里应该跳转到对应的详情页面
+    }
+  </script>
+</body>
+</html>
