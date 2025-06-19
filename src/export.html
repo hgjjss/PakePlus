@@ -1,0 +1,1056 @@
+
+<!-- management_monitoring_system/frontend/export.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>数据导出功能 | 管理与监控信息共享系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass:hover {
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            border-left: 4px solid #10B981;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .export-card {
+            transition: all 0.3s ease;
+        }
+        
+        .export-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .format-option {
+            transition: all 0.2s ease;
+        }
+        
+        .format-option:hover {
+            transform: scale(1.05);
+        }
+        
+        .format-option.selected {
+            border: 2px solid #3B82F6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #10B981, #3B82F6);
+            transition: width 0.3s ease;
+        }
+        
+        .refresh-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #3B82F6, #10B981);
+            transition: all 0.3s ease;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .success-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 侧边栏 -->
+            <div class="lg:w-1/5">
+                <div class="glass p-5 mb-6">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                        <h1 class="text-white text-xl font-bold">管理与监控信息共享系统</h1>
+                    </div>
+                    
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="dashboard.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>控制面板</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="data-collection.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-database mr-3"></i>
+                                <span>数据采集</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="stream-processing.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-stream mr-3"></i>
+                                <span>流式处理</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="analysis-center.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-brain mr-3"></i>
+                                <span>智能分析</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="export.html" class="nav-item active flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-file-export mr-3"></i>
+                                <span>数据导出</span>
+                                <span class="bg-green-500 text-xs font-bold px-2 py-1 rounded-full ml-auto">活跃</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass p-5">
+                    <h3 class="text-white text-lg font-bold mb-4">用户信息</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-white font-medium" id="username-display">admin</p>
+                            <p class="text-white text-opacity-70 text-sm">系统管理员</p>
+                        </div>
+                    </div>
+                    <hr class="border-white border-opacity-20 my-4">
+                    <button id="logout-btn" class="w-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-4 rounded-lg transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="lg:w-4/5">
+                <div class="glass p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-white text-2xl font-bold">数据导出中心</h2>
+                            <p class="text-white text-opacity-80">导出系统监控数据以便分析与报告生成</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white bg-opacity-10 rounded-lg px-3 py-2 text-white">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span id="current-date">2025-05-06</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 导出选项 -->
+                    <div class="mb-8">
+                        <h3 class="text-white text-xl font-bold mb-4">选择导出格式</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="glass format-option p-4 cursor-pointer" data-format="excel">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-file-excel text-white text-3xl"></i>
+                                    </div>
+                                    <h4 class="text-white font-bold mb-1">Excel格式</h4>
+                                    <p class="text-white text-opacity-70 text-sm text-center">用于数据分析与处理</p>
+                                </div>
+                            </div>
+                            
+                            <div class="glass format-option p-4 cursor-pointer" data-format="pdf">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-file-pdf text-white text-3xl"></i>
+                                    </div>
+                                    <h4 class="text-white font-bold mb-1">PDF格式</h4>
+                                    <p class="text-white text-opacity-70 text-sm text-center">适合正式报告与演示</p>
+                                </div>
+                            </div>
+                            
+                            <div class="glass format-option p-4 cursor-pointer" data-format="csv">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-file-csv text-white text-3xl"></i>
+                                    </div>
+                                    <h4 class="text-white font-bold mb-1">CSV格式</h4>
+                                    <p class="text-white text-opacity-70 text-sm text-center">通用数据交换格式</p>
+                                </div>
+                            </div>
+                            
+                            <div class="glass format-option p-4 cursor-pointer" data-format="json">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-file-code text-white text-3xl"></i>
+                                    </div>
+                                    <h4 class="text-white font-bold mb-1">JSON格式</h4>
+                                    <p class="text-white text-opacity-70 text-sm text-center">适用于程序接口对接</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 数据范围选择 -->
+                    <div class="glass p-6 mb-8">
+                        <h3 class="text-white text-lg font-bold mb-4">数据范围与筛选</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-white font-bold mb-3">选择数据类型</h4>
+                                <div class="space-y-2">
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" class="mr-2 data-type" value="sensor" checked> 传感器数据
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" class="mr-2 data-type" value="alert" checked> 告警记录
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" class="mr-2 data-type" value="analysis" checked> 分析结果
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" class="mr-2 data-type" value="system" checked> 系统日志
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-white font-bold mb-3">时间范围</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-white mb-1">开始日期</label>
+                                        <input type="date" id="start-date" class="w-full bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-white mb-1">结束日期</label>
+                                        <input type="date" id="end-date" class="w-full bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none">
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-3 rounded-lg transition duration-300 time-preset" data-days="7">
+                                            过去7天
+                                        </button>
+                                        <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-3 rounded-lg transition duration-300 time-preset" data-days="30">
+                                            过去30天
+                                        </button>
+                                        <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-3 rounded-lg transition duration-300 time-preset" data-days="90">
+                                            过去90天
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-white font-bold mb-3">数据分组</h4>
+                                <select id="group-by" class="w-full bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none">
+                                    <option value="none">不分组</option>
+                                    <option value="daily">按天分组</option>
+                                    <option value="weekly">按周分组</option>
+                                    <option value="monthly">按月分组</option>
+                                    <option value="source">按数据源分组</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-white font-bold mb-3">排序方式</h4>
+                                <div class="flex space-x-3 mb-2">
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="sort-by" value="time-asc" class="mr-2"> 时间升序
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="sort-by" value="time-desc" class="mr-2" checked> 时间降序
+                                    </label>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="sort-by" value="value-asc" class="mr-2"> 数值升序
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="sort-by" value="value-desc" class="mr-2"> 数值降序
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 导出预览 -->
+                    <div class="glass p-6 mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-white text-lg font-bold">数据预览</h3>
+                            <div class="flex items-center">
+                                <span class="text-white mr-2">显示行数:</span>
+                                <select id="preview-rows" class="bg-white bg-opacity-10 text-white py-1 px-2 rounded-lg focus:outline-none">
+                                    <option value="5">5行</option>
+                                    <option value="10" selected>10行</option>
+                                    <option value="20">20行</option>
+                                    <option value="50">50行</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-white">
+                                <thead>
+                                    <tr class="border-b border-white border-opacity-20">
+                                        <th class="py-3 px-4 text-left">ID</th>
+                                        <th class="py-3 px-4 text-left">数据类型</th>
+                                        <th class="py-3 px-4 text-left">数据源</th>
+                                        <th class="py-3 px-4 text-left">数值</th>
+                                        <th class="py-3 px-4 text-left">单位</th>
+                                        <th class="py-3 px-4 text-left">状态</th>
+                                        <th class="py-3 px-4 text-left">时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="preview-table">
+                                    <!-- 数据将通过JavaScript动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex justify-between mt-4">
+                            <div class="text-white text-sm">
+                                显示 <span id="showing-rows">1-10</span> 行，共 <span id="total-rows">2,587</span> 行
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="prev-page" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button id="next-page" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 导出选项 -->
+                    <div class="glass p-6 mb-8">
+                        <h3 class="text-white text-lg font-bold mb-4">导出选项</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <h4 class="text-white font-bold mb-2">文件命名</h4>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-3 text-white opacity-70">
+                                        <i class="fas fa-file"></i>
+                                    </span>
+                                    <input type="text" id="file-name" class="w-full bg-white bg-opacity-10 text-white py-2 pl-10 pr-4 rounded-lg focus:outline-none" value="monitor_data_export">
+                                </div>
+                                <p class="text-white text-opacity-70 text-xs mt-1">将自动添加时间戳与文件格式后缀</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-white font-bold mb-2">包含图表</h4>
+                                <label class="flex items-center text-white mb-2">
+                                    <input type="checkbox" id="include-charts" class="mr-2" checked> 包含数据可视化图表
+                                </label>
+                                <p class="text-white text-opacity-70 text-xs">仅支持PDF格式导出</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-white font-bold mb-2">添加页眉/页脚</h4>
+                                <label class="flex items-center text-white mb-2">
+                                    <input type="checkbox" id="include-header" class="mr-2" checked> 包含系统信息和导出时间
+                                </label>
+                            </div>
+                            
+                            <div class="md:col-span-3">
+                                <h4 class="text-white font-bold mb-2">高级选项</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" id="compress-data" class="mr-2"> 数据压缩 
+                                        <span class="tooltip ml-1">
+                                            <i class="fas fa-question-circle"></i>
+                                            <span class="tooltip-text">将导出的数据文件进行压缩，减小文件大小</span>
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" id="add-metadata" class="mr-2" checked> 添加元数据
+                                        <span class="tooltip ml-1">
+                                            <i class="fas fa-question-circle"></i>
+                                            <span class="tooltip-text">包含系统信息、版本号和导出时间等元数据</span>
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="checkbox" id="encrypt-data" class="mr-2"> 数据加密
+                                        <span class="tooltip ml-1">
+                                            <i class="fas fa-question-circle"></i>
+                                            <span class="tooltip-text">使用密码保护导出的数据文件（仅PDF和Excel支持）</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 导出按钮 -->
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center text-white">
+                            <i class="fas fa-info-circle mr-2 text-blue-400"></i>
+                            <span id="export-info">已选择 <span id="selected-rows">2,587</span> 行数据，预计文件大小约 <span id="file-size">1.2 MB</span></span>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="save-preset" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-4 rounded-lg transition duration-300">
+                                <i class="fas fa-save mr-2"></i> 保存设置
+                            </button>
+                            <button id="export-button" class="export-btn text-white py-2 px-6 rounded-lg font-bold transition duration-300">
+                                <i class="fas fa-file-export mr-2"></i> 开始导出
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 历史导出记录 -->
+                <div class="glass p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-white text-lg font-bold">历史导出记录</h3>
+                        <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300" id="refresh-history">
+                            <i class="fas fa-sync-alt mr-1 refresh-icon"></i> 刷新
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-white">
+                            <thead>
+                                <tr class="border-b border-white border-opacity-20">
+                                    <th class="py-3 px-4 text-left">文件名</th>
+                                    <th class="py-3 px-4 text-left">格式</th>
+                                    <th class="py-3 px-4 text-left">大小</th>
+                                    <th class="py-3 px-4 text-left">导出时间</th>
+                                    <th class="py-3 px-4 text-left">状态</th>
+                                    <th class="py-3 px-4 text-left">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table">
+                                <tr class="border-b border-white border-opacity-10">
+                                    <td class="py-3 px-4">monitor_data_export_20250506_120145.xlsx</td>
+                                    <td class="py-3 px-4"><i class="fas fa-file-excel text-green-400 mr-2"></i>Excel</td>
+                                    <td class="py-3 px-4">1.2 MB</td>
+                                    <td class="py-3 px-4">2025-05-06 12:01</td>
+                                    <td class="py-3 px-4"><span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">完成</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-400 hover:text-blue-300 mr-2"><i class="fas fa-download"></i></button>
+                                        <button class="text-red-400 hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-white border-opacity-10">
+                                    <td class="py-3 px-4">sensor_data_report_20250505_183022.pdf</td>
+                                    <td class="py-3 px-4"><i class="fas fa-file-pdf text-red-400 mr-2"></i>PDF</td>
+                                    <td class="py-3 px-4">3.7 MB</td>
+                                    <td class="py-3 px-4">2025-05-05 18:30</td>
+                                    <td class="py-3 px-4"><span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">完成</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-400 hover:text-blue-300 mr-2"><i class="fas fa-download"></i></button>
+                                        <button class="text-red-400 hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-white border-opacity-10">
+                                    <td class="py-3 px-4">alert_records_20250505_092115.csv</td>
+                                    <td class="py-3 px-4"><i class="fas fa-file-csv text-blue-400 mr-2"></i>CSV</td>
+                                    <td class="py-3 px-4">845 KB</td>
+                                    <td class="py-3 px-4">2025-05-05 09:21</td>
+                                    <td class="py-3 px-4"><span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">完成</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-400 hover:text-blue-300 mr-2"><i class="fas fa-download"></i></button>
+                                        <button class="text-red-400 hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">api_analysis_data_20250504_142203.json</td>
+                                    <td class="py-3 px-4"><i class="fas fa-file-code text-yellow-400 mr-2"></i>JSON</td>
+                                    <td class="py-3 px-4">1.5 MB</td>
+                                    <td class="py-3 px-4">2025-05-04 14:22</td>
+                                    <td class="py-3 px-4"><span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">完成</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-400 hover:text-blue-300 mr-2"><i class="fas fa-download"></i></button>
+                                        <button class="text-red-400 hover:text-red-300"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 导出进度模态框 -->
+    <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <div id="export-status-icon" class="inline-block w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-cog text-white text-3xl fa-spin"></i>
+                </div>
+                <h3 class="text-white text-xl font-bold" id="export-status-text">正在生成导出文件...</h3>
+                <p class="text-white text-opacity-80 mt-2" id="export-status-detail">正在处理数据，请稍候...</p>
+            </div>
+            
+            <div class="mb-6">
+                <div class="text-white mb-1 flex justify-between">
+                    <span>总体进度</span>
+                    <span id="export-progress-text">0%</span>
+                </div>
+                <div class="w-full bg-white bg-opacity-20 rounded-full h-3">
+                    <div class="progress-bar h-3 rounded-full" style="width: 0%" id="export-progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="text-white text-sm space-y-2 mb-6">
+                <div class="flex justify-between">
+                    <span>数据提取:</span>
+                    <span class="font-bold text-green-400" id="extract-status">待开始</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>数据处理:</span>
+                    <span class="font-bold" id="process-status">待开始</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>文件生成:</span>
+                    <span class="font-bold" id="generate-status">待开始</span>
+                </div>
+            </div>
+            
+            <div class="flex justify-center" id="modal-actions">
+                <button id="cancel-export" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-6 rounded-lg transition duration-300">
+                    取消导出
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 设置用户名
+            const userNameDisplay = document.getElementById('username-display');
+            if (userNameDisplay) {
+                userNameDisplay.textContent = localStorage.getItem('username') || 'admin';
+            }
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 初始化日期显示
+            updateDateTime();
+            
+            // 设置默认日期范围（过去30天）
+            setDateRange(30);
+            
+            // 初始化数据预览表格
+            generatePreviewData();
+            
+            // 绑定事件处理
+            bindEventHandlers();
+        });
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particlesCount = 30;
+            
+            if (!particlesContainer) return;
+            
+            for (let i = 0; i < particlesCount; i++) {
+                const size = Math.random() * 4 + 1;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                
+                // 随机动画
+                const animationDuration = Math.random() * 20 + 10;
+                const animationDelay = Math.random() * 5;
+                
+                particle.style.animation = `float ${animationDuration}s ease-in-out infinite`;
+                particle.style.animationDelay = `${animationDelay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 更新日期和时间
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            
+            const dateDisplay = document.getElementById('current-date');
+            if (dateDisplay) {
+                dateDisplay.textContent = dateStr;
+            }
+        }
+        
+        // 设置日期范围
+        function setDateRange(days) {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+            
+            const endDateInput = document.getElementById('end-date');
+            const startDateInput = document.getElementById('start-date');
+            
+            if (endDateInput && startDateInput) {
+                endDateInput.valueAsDate = endDate;
+                startDateInput.valueAsDate = startDate;
+            }
+        }
+        
+        // 生成预览数据
+        function generatePreviewData() {
+            const tableBody = document.getElementById('preview-table');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            const dataTypes = ['温度', '湿度', '压力', '流量', '电压', '电流', 'pH值', '气体浓度'];
+            const dataSources = ['A区传感器', 'B区传感器', 'C区传感器', 'D区传感器', '视频监控', 'API数据源'];
+            const statuses = ['正常', '警告', '异常', '维护中', '离线'];
+            const statusClasses = ['text-green-400', 'text-yellow-400', 'text-red-400', 'text-blue-400', 'text-gray-400'];
+            
+            const rowCount = parseInt(document.getElementById('preview-rows').value);
+            
+            for (let i = 1; i <= rowCount; i++) {
+                const row = document.createElement('tr');
+                row.classList.add('border-b', 'border-white', 'border-opacity-10');
+                
+                const typeIndex = Math.floor(Math.random() * dataTypes.length);
+                const sourceIndex = Math.floor(Math.random() * dataSources.length);
+                const statusIndex = Math.floor(Math.random() * statuses.length);
+                
+                let value, unit;
+                switch (dataTypes[typeIndex]) {
+                    case '温度':
+                        value = (Math.random() * 50 - 10).toFixed(1);
+                        unit = '°C';
+                        break;
+                    case '湿度':
+                        value = (Math.random() * 100).toFixed(1);
+                        unit = '%';
+                        break;
+                    case '压力':
+                        value = (Math.random() * 10).toFixed(2);
+                        unit = 'MPa';
+                        break;
+                    case '流量':
+                        value = (Math.random() * 200).toFixed(0);
+                        unit = 'L/min';
+                        break;
+                    case '电压':
+                        value = (Math.random() * 240).toFixed(1);
+                        unit = 'V';
+                        break;
+                    case '电流':
+                        value = (Math.random() * 20).toFixed(2);
+                        unit = 'A';
+                        break;
+                    case 'pH值':
+                        value = (Math.random() * 14).toFixed(1);
+                        unit = '';
+                        break;
+                    default:
+                        value = (Math.random() * 500).toFixed(0);
+                        unit = 'ppm';
+                }
+                
+                const now = new Date();
+                const randomHours = Math.floor(Math.random() * 72);
+                now.setHours(now.getHours() - randomHours);
+                const timeStr = now.toLocaleString('zh-CN');
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4">DATA-${(10000 + i).toString()}</td>
+                    <td class="py-3 px-4">${dataTypes[typeIndex]}</td>
+                    <td class="py-3 px-4">${dataSources[sourceIndex]}</td>
+                    <td class="py-3 px-4">${value}</td>
+                    <td class="py-3 px-4">${unit}</td>
+                    <td class="py-3 px-4">
+                        <span class="${statusClasses[statusIndex]}">
+                            <i class="fas fa-circle text-xs mr-1"></i>
+                            ${statuses[statusIndex]}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${timeStr}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            }
+            
+            // 更新显示行数
+            document.getElementById('showing-rows').textContent = `1-${rowCount}`;
+            
+            // 更新预计文件大小
+            const totalRows = 2587;
+            const selectedRows = document.getElementById('selected-rows');
+            if (selectedRows) {
+                selectedRows.textContent = totalRows.toLocaleString();
+            }
+            
+            const fileSize = (Math.random() * 0.5 + 1).toFixed(1);
+            const fileSizeElem = document.getElementById('file-size');
+            if (fileSizeElem) {
+                fileSizeElem.textContent = `${fileSize} MB`;
+            }
+        }
+        
+        // 绑定事件处理器
+        function bindEventHandlers() {
+            // 格式选择
+            const formatOptions = document.querySelectorAll('.format-option');
+            formatOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除其他选择项的选中状态
+                    formatOptions.forEach(opt => opt.classList.remove('selected'));
+                    // 添加当前选择项的选中状态
+                    this.classList.add('selected');
+                    
+                    // 更新UI，根据格式启用/禁用某些选项
+                    const format = this.getAttribute('data-format');
+                    toggleOptionsBasedOnFormat(format);
+                });
+            });
+            
+            // 时间预设按钮
+            const timePresets = document.querySelectorAll('.time-preset');
+            timePresets.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const days = parseInt(this.getAttribute('data-days'));
+                    setDateRange(days);
+                    
+                    // 添加高亮效果
+                    timePresets.forEach(b => b.classList.remove('bg-blue-600', 'hover:bg-blue-700'));
+                    this.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    this.classList.remove('bg-white', 'bg-opacity-10', 'hover:bg-opacity-20');
+                });
+            });
+            
+            // 预览行数变化
+            document.getElementById('preview-rows').addEventListener('change', function() {
+                generatePreviewData();
+            });
+            
+            // 分页按钮
+            document.getElementById('prev-page').addEventListener('click', function() {
+                // 在实际应用中这里会加载上一页数据
+                alert('加载上一页数据：正在开发中');
+            });
+            
+            document.getElementById('next-page').addEventListener('click', function() {
+                // 在实际应用中这里会加载下一页数据
+                alert('加载下一页数据：正在开发中');
+            });
+            
+            // 保存设置按钮
+            document.getElementById('save-preset').addEventListener('click', function() {
+                alert('保存导出设置：正在开发中');
+            });
+            
+            // 导出按钮
+            document.getElementById('export-button').addEventListener('click', function() {
+                startExport();
+            });
+            
+            // 刷新历史记录
+            document.getElementById('refresh-history').addEventListener('click', function() {
+                const icon = this.querySelector('.refresh-icon');
+                icon.classList.add('spinning');
+                
+                // 模拟刷新
+                setTimeout(() => {
+                    icon.classList.remove('spinning');
+                    alert('刷新历史记录：正在开发中');
+                }, 1000);
+            });
+            
+            // 取消导出
+            document.getElementById('cancel-export').addEventListener('click', function() {
+                document.getElementById('export-modal').classList.add('hidden');
+            });
+            
+            // 退出登录
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            
+            // 历史记录操作按钮
+            const downloadButtons = document.querySelectorAll('#history-table .text-blue-400');
+            downloadButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    alert('下载文件：正在开发中');
+                });
+            });
+            
+            const deleteButtons = document.querySelectorAll('#history-table .text-red-400');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('确定要删除此导出记录吗？')) {
+                        alert('删除记录：正在开发中');
+                    }
+                });
+            });
+        }
+        
+        // 根据文件格式切换选项
+        function toggleOptionsBasedOnFormat(format) {
+            const includeChartsOption = document.getElementById('include-charts');
+            const includeChartsLabel = includeChartsOption.parentElement;
+            const encryptDataOption = document.getElementById('encrypt-data');
+            const encryptDataLabel = encryptDataOption.parentElement;
+            
+            if (format === 'pdf') {
+                includeChartsOption.disabled = false;
+                includeChartsLabel.classList.remove('text-opacity-50');
+                encryptDataOption.disabled = false;
+                encryptDataLabel.classList.remove('text-opacity-50');
+            } else if (format === 'excel') {
+                includeChartsOption.disabled = true;
+                includeChartsOption.checked = false;
+                includeChartsLabel.classList.add('text-opacity-50');
+                encryptDataOption.disabled = false;
+                encryptDataLabel.classList.remove('text-opacity-50');
+            } else {
+                includeChartsOption.disabled = true;
+                includeChartsOption.checked = false;
+                includeChartsLabel.classList.add('text-opacity-50');
+                encryptDataOption.disabled = true;
+                encryptDataOption.checked = false;
+                encryptDataLabel.classList.add('text-opacity-50');
+            }
+            
+            // 更新导出信息
+            updateExportInfo(format);
+        }
+        
+        // 更新导出信息
+        function updateExportInfo(format) {
+            const fileSize = document.getElementById('file-size');
+            let size;
+            
+            switch (format) {
+                case 'excel':
+                    size = (Math.random() * 0.5 + 1).toFixed(1);
+                    break;
+                case 'pdf':
+                    size = (Math.random() * 1 + 3).toFixed(1);
+                    break;
+                case 'csv':
+                    size = (Math.random() * 0.3 + 0.6).toFixed(1);
+                    break;
+                case 'json':
+                    size = (Math.random() * 0.5 + 1.2).toFixed(1);
+                    break;
+                default:
+                    size = (Math.random() * 0.5 + 1).toFixed(1);
+            }
+            
+            if (fileSize) {
+                fileSize.textContent = `${size} MB`;
+            }
+        }
+        
+        // 开始导出流程
+        function startExport() {
+            const modal = document.getElementById('export-modal');
+            modal.classList.remove('hidden');
+            
+            // 获取选中的导出格式
+            let selectedFormat = 'excel'; // 默认
+            const formatElement = document.querySelector('.format-option.selected');
+            if (formatElement) {
+                selectedFormat = formatElement.getAttribute('data-format');
+            }
+            
+            const progressBar = document.getElementById('export-progress-bar');
+            const progressText = document.getElementById('export-progress-text');
+            const extractStatus = document.getElementById('extract-status');
+            const processStatus = document.getElementById('process-status');
+            const generateStatus = document.getElementById('generate-status');
+            const statusIcon = document.getElementById('export-status-icon');
+            const statusText = document.getElementById('export-status-text');
+            const statusDetail = document.getElementById('export-status-detail');
+            const modalActions = document.getElementById('modal-actions');
+            
+            // 重置进度条
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+            extractStatus.textContent = '处理中...';
+            extractStatus.className = 'font-bold text-blue-400';
+            processStatus.textContent = '待开始';
+            processStatus.className = 'font-bold';
+            generateStatus.textContent = '待开始';
+            generateStatus.className = 'font-bold';
+            
+            // 模拟数据提取进度
+            setTimeout(() => {
+                progressBar.style.width = '30%';
+                progressText.textContent = '30%';
+                extractStatus.textContent = '完成';
+                extractStatus.className = 'font-bold text-green-400';
+                processStatus.textContent = '处理中...';
+                processStatus.className = 'font-bold text-blue-400';
+                statusDetail.textContent = '正在处理数据...';
+                
+                // 模拟数据处理进度
+                setTimeout(() => {
+                    progressBar.style.width = '70%';
+                    progressText.textContent = '70%';
+                    processStatus.textContent = '完成';
+                    processStatus.className = 'font-bold text-green-400';
+                    generateStatus.textContent = '处理中...';
+                    generateStatus.className = 'font-bold text-blue-400';
+                    statusDetail.textContent = '正在生成文件...';
+                    
+                    // 模拟文件生成完成
+                    setTimeout(() => {
+                        progressBar.style.width = '100%';
+                        progressText.textContent = '100%';
+                        generateStatus.textContent = '完成';
+                        generateStatus.className = 'font-bold text-green-400';
+                        
+                        statusIcon.innerHTML = '<i class="fas fa-check text-white text-3xl"></i>';
+                        statusIcon.className = 'inline-block w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 success-animation';
+                        statusText.textContent = '导出完成！';
+                        statusDetail.textContent = `已成功导出为${getFormatName(selectedFormat)}格式`;
+                        
+                        modalActions.innerHTML = `
+                            <button id="download-export" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg transition duration-300 mr-3">
+                                <i class="fas fa-download mr-2"></i> 下载文件
+                            </button>
+                            <button id="close-modal" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-6 rounded-lg transition duration-300">
+                                关闭
+                            </button>
+                        `;
+                        
+                        // 绑定新按钮事件
+                        document.getElementById('download-export').addEventListener('click', function() {
+                            alert(`下载${getFormatName(selectedFormat)}文件：正在开发中`);
+                        });
+                        
+                        document.getElementById('close-modal').addEventListener('click', function() {
+                            modal.classList.add('hidden');
+                        });
+                        
+                    }, 2000);
+                    
+                }, 2000);
+                
+            }, 2000);
+        }
+        
+        // 获取格式名称
+        function getFormatName(format) {
+            switch (format) {
+                case 'excel': return 'Excel';
+                case 'pdf': return 'PDF';
+                case 'csv': return 'CSV';
+                case 'json': return 'JSON';
+                default: return 'Excel';
+            }
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
