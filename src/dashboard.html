@@ -1,0 +1,968 @@
+
+<!-- management_monitoring_system/frontend/dashboard.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>可视化监管平台 | 管理与监控信息共享系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass:hover {
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+        
+        .chart-container {
+            height: 240px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #10B981;
+            box-shadow: 0 0 10px #10B981;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-warning {
+            background-color: #F59E0B;
+        }
+        
+        .status-danger {
+            background-color: #EF4444;
+        }
+        
+        .status-normal {
+            background-color: #3B82F6;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            border-left: 4px solid #10B981;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .counter-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 0.7rem;
+        }
+        
+        .refresh-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .gauge-container {
+            position: relative;
+            width: 100px;
+            height: 50px;
+            margin: 0 auto;
+        }
+        
+        .gauge-background {
+            fill: rgba(255, 255, 255, 0.1);
+            stroke: none;
+        }
+        
+        .gauge-fill {
+            fill: url(#gradient);
+            stroke: none;
+            transition: all 0.5s ease;
+        }
+        
+        .gauge-center {
+            fill: rgba(255, 255, 255, 0.2);
+            stroke: none;
+        }
+        
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .pie-slice {
+            transition: all 0.3s ease;
+        }
+        
+        .pie-slice:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+        
+        .trend-up {
+            color: #10B981;
+        }
+        
+        .trend-down {
+            color: #EF4444;
+        }
+        
+        .alert-item {
+            transition: all 0.3s ease;
+        }
+        
+        .alert-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .highlight {
+            animation: highlight 1s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 侧边栏 -->
+            <div class="lg:w-1/5">
+                <div class="glass p-5 mb-6">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                        <h1 class="text-white text-xl font-bold">管理与监控信息共享系统</h1>
+                    </div>
+                    
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="dashboard.html" class="nav-item active flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>控制面板</span>
+                                <span class="bg-green-500 text-xs font-bold px-2 py-1 rounded-full ml-auto">活跃</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="data-collection.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-database mr-3"></i>
+                                <span>数据采集</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="stream-processing.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-stream mr-3"></i>
+                                <span>流式处理</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="analysis-center.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-brain mr-3"></i>
+                                <span>智能分析</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="export.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-file-export mr-3"></i>
+                                <span>数据导出</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass p-5">
+                    <h3 class="text-white text-lg font-bold mb-4">用户信息</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-white font-medium" id="username-display">admin</p>
+                            <p class="text-white text-opacity-70 text-sm">系统管理员</p>
+                        </div>
+                    </div>
+                    <hr class="border-white border-opacity-20 my-4">
+                    <button id="logout-btn" class="w-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-4 rounded-lg transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="lg:w-4/5">
+                <div class="glass p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-white text-2xl font-bold">控制面板</h2>
+                            <p class="text-white text-opacity-80">系统概览与关键指标</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white bg-opacity-10 rounded-lg px-3 py-2 text-white">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span id="current-date">2025-05-06</span>
+                            </div>
+                            <button id="refresh-all" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition duration-300">
+                                <i class="fas fa-sync-alt mr-2 refresh-icon" id="refresh-icon"></i> 刷新数据
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 状态卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="glass p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">系统状态</h3>
+                                <span class="flex items-center text-white text-sm">
+                                    <span class="status-indicator status-active"></span> 正常
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-center my-4">
+                                <div class="gauge-container">
+                                    <svg viewBox="0 0 100 50">
+                                        <defs>
+                                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#10B981" />
+                                                <stop offset="100%" stop-color="#3B82F6" />
+                                            </linearGradient>
+                                        </defs>
+                                        <path class="gauge-background" d="M 0,50 A 50,50 0 1,1 100,50 Z" />
+                                        <path class="gauge-fill" d="M 0,50 A 50,50 0 1,1 100,50" id="system-gauge" />
+                                        <circle class="gauge-center" cx="50" cy="50" r="30" />
+                                        <text x="50" y="55" text-anchor="middle" fill="white" font-size="14" font-weight="bold" id="system-percentage">95%</text>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-center text-white">
+                                <p>服务器运行时间</p>
+                                <p class="font-bold" id="uptime">7天 13小时 22分钟</p>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">数据采集点</h3>
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">在线</span>
+                            </div>
+                            <div class="text-white text-center my-4">
+                                <div class="text-4xl font-bold mb-1" id="sensor-count">32</div>
+                                <p class="text-white text-opacity-70">总采集点</p>
+                            </div>
+                            <div class="flex justify-between text-white text-sm">
+                                <div class="text-center">
+                                    <div class="font-bold" id="active-sensors">28</div>
+                                    <div class="text-white text-opacity-70">活跃</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold" id="warning-sensors">3</div>
+                                    <div class="text-white text-opacity-70">警告</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold" id="offline-sensors">1</div>
+                                    <div class="text-white text-opacity-70">离线</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">数据流量</h3>
+                                <span class="flex items-center text-white text-sm">
+                                    <i class="fas fa-arrow-trend-up text-green-400 mr-1"></i> 增长
+                                </span>
+                            </div>
+                            <div class="text-white text-center my-4">
+                                <div class="text-4xl font-bold mb-1" id="data-rate">1.2 <span class="text-lg">GB/小时</span></div>
+                                <p class="text-white text-opacity-70">处理速率</p>
+                            </div>
+                            <div class="flex justify-between text-white text-sm">
+                                <div class="text-center">
+                                    <div class="font-bold" id="input-rate">1.5 <span class="text-xs">GB/h</span></div>
+                                    <div class="text-white text-opacity-70">输入</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold" id="output-rate">1.2 <span class="text-xs">GB/h</span></div>
+                                    <div class="text-white text-opacity-70">输出</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold" id="efficiency">80%</div>
+                                    <div class="text-white text-opacity-70">效率</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">告警状态</h3>
+                                <span class="flex items-center text-white text-sm">
+                                    <span class="status-indicator status-warning"></span> 需注意
+                                </span>
+                            </div>
+                            <div class="text-white text-center my-4">
+                                <div class="text-4xl font-bold mb-1" id="alert-count">5</div>
+                                <p class="text-white text-opacity-70">未处理告警</p>
+                            </div>
+                            <div class="flex justify-between text-white text-sm">
+                                <div class="text-center">
+                                    <div class="font-bold text-red-400" id="high-alerts">1</div>
+                                    <div class="text-white text-opacity-70">高危</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold text-yellow-400" id="medium-alerts">3</div>
+                                    <div class="text-white text-opacity-70">中危</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold text-blue-400" id="low-alerts">1</div>
+                                    <div class="text-white text-opacity-70">低危</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 图表区域 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- 传感器数据趋势图 -->
+                        <div class="glass p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-white text-lg font-bold">传感器数据趋势</h3>
+                                <select class="bg-white bg-opacity-10 text-white py-1 px-3 rounded-md focus:outline-none" id="chart-timespan">
+                                    <option value="day">24小时</option>
+                                    <option value="week">7天</option>
+                                    <option value="month">30天</option>
+                                </select>
+                            </div>
+                            <div class="chart-container" id="trend-chart">
+                                <svg width="100%" height="100%" viewBox="0 0 600 200">
+                                    <!-- 坐标轴 -->
+                                    <line x1="40" y1="180" x2="580" y2="180" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    <line x1="40" y1="20" x2="40" y2="180" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    
+                                    <!-- Y轴刻度 -->
+                                    <text x="35" y="180" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">0</text>
+                                    <line x1="38" y1="180" x2="42" y2="180" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    
+                                    <text x="35" y="140" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">25</text>
+                                    <line x1="38" y1="140" x2="42" y2="140" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    
+                                    <text x="35" y="100" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">50</text>
+                                    <line x1="38" y1="100" x2="42" y2="100" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    
+                                    <text x="35" y="60" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">75</text>
+                                    <line x1="38" y1="60" x2="42" y2="60" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    
+                                    <text x="35" y="20" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">100</text>
+                                    <line x1="38" y1="20" x2="42" y2="20" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+                                    
+                                    <!-- X轴刻度 -->
+                                    <text x="40" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">00:00</text>
+                                    <text x="130" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">06:00</text>
+                                    <text x="220" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">12:00</text>
+                                    <text x="310" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">18:00</text>
+                                    <text x="400" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">00:00</text>
+                                    <text x="490" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">06:00</text>
+                                    <text x="580" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">12:00</text>
+                                    
+                                    <!-- 网格线 -->
+                                    <line x1="40" y1="140" x2="580" y2="140" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="40" y1="100" x2="580" y2="100" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="40" y1="60" x2="580" y2="60" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="40" y1="20" x2="580" y2="20" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    
+                                    <line x1="130" y1="20" x2="130" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="220" y1="20" x2="220" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="310" y1="20" x2="310" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="400" y1="20" x2="400" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    <line x1="490" y1="20" x2="490" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                    
+                                    <!-- 温度曲线 -->
+                                    <path d="M40,120 C60,110 80,130 100,125 C120,120 140,100 160,95 C180,90 200,120 220,110 C240,100 260,70 280,80 C300,90 320,70 340,60 C360,50 380,75 400,80 C420,85 440,60 460,50 C480,40 500,60 520,70 C540,80 560,65 580,55" 
+                                          fill="none" stroke="#3B82F6" stroke-width="2" />
+                                    
+                                    <!-- 湿度曲线 -->
+                                    <path d="M40,160 C60,170 80,150 100,150 C120,150 140,160 160,165 C180,170 200,150 220,145 C240,140 260,160 280,155 C300,150 320,140 340,145 C360,150 380,160 400,155 C420,150 440,160 460,165 C480,170 500,150 520,145 C540,140 560,160 580,165" 
+                                          fill="none" stroke="#10B981" stroke-width="2" />
+                                    
+                                    <!-- 图例 -->
+                                    <circle cx="500" y="30" r="4" fill="#3B82F6" />
+                                    <text x="510" y="33" fill="rgba(255,255,255,0.8)" font-size="12">温度</text>
+                                    
+                                    <circle cx="550" y="30" r="4" fill="#10B981" />
+                                    <text x="560" y="33" fill="rgba(255,255,255,0.8)" font-size="12">湿度</text>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- 系统资源使用情况 -->
+                        <div class="glass p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-white text-lg font-bold">系统资源使用情况</h3>
+                                <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-md transition duration-300">
+                                    <i class="fas fa-chart-bar mr-1"></i> 详情
+                                </button>
+                            </div>
+                            <div class="chart-container" id="resource-chart">
+                                <div class="flex justify-around items-center h-full">
+                                    <!-- CPU使用率 -->
+                                    <div class="text-center">
+                                        <svg class="donut-chart mx-auto" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10" />
+                                            <circle cx="50" cy="50" r="40" fill="none" stroke="#3B82F6" stroke-width="10" stroke-dasharray="251.2 251.2" stroke-dashoffset="65.312" transform="rotate(-90 50 50)" id="cpu-circle" />
+                                            <text x="50" y="50" text-anchor="middle" fill="white" font-size="20" font-weight="bold" alignment-baseline="middle" id="cpu-text">74%</text>
+                                        </svg>
+                                        <p class="text-white mt-2">CPU</p>
+                                    </div>
+                                    
+                                    <!-- 内存使用率 -->
+                                    <div class="text-center">
+                                        <svg class="donut-chart mx-auto" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10" />
+                                            <circle cx="50" cy="50" r="40" fill="none" stroke="#10B981" stroke-width="10" stroke-dasharray="251.2 251.2" stroke-dashoffset="125.6" transform="rotate(-90 50 50)" id="memory-circle" />
+                                            <text x="50" y="50" text-anchor="middle" fill="white" font-size="20" font-weight="bold" alignment-baseline="middle" id="memory-text">50%</text>
+                                        </svg>
+                                        <p class="text-white mt-2">内存</p>
+                                    </div>
+                                    
+                                    <!-- 磁盘使用率 -->
+                                    <div class="text-center">
+                                        <svg class="donut-chart mx-auto" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10" />
+                                            <circle cx="50" cy="50" r="40" fill="none" stroke="#F59E0B" stroke-width="10" stroke-dasharray="251.2 251.2" stroke-dashoffset="75.36" transform="rotate(-90 50 50)" id="disk-circle" />
+                                            <text x="50" y="50" text-anchor="middle" fill="white" font-size="20" font-weight="bold" alignment-baseline="middle" id="disk-text">70%</text>
+                                        </svg>
+                                        <p class="text-white mt-2">磁盘</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 下部区域 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- 告警信息 -->
+                        <div class="glass p-4 lg:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-white text-lg font-bold">最新告警</h3>
+                                <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-md transition duration-300">
+                                    查看全部
+                                </button>
+                            </div>
+                            <div class="space-y-3 max-h-80 overflow-y-auto" id="alerts-container">
+                                <div class="alert-item glass bg-opacity-10 p-3 rounded-lg">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <span class="status-indicator status-danger"></span>
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <h4 class="text-white font-bold">A区温度传感器异常高值</h4>
+                                                <span class="text-white text-opacity-70 text-sm">10分钟前</span>
+                                            </div>
+                                            <p class="text-white text-opacity-80 text-sm mt-1">温度读数达到85°C，超过预设阈值20%</p>
+                                            <div class="flex justify-between items-center mt-2">
+                                                <span class="text-red-400 text-sm font-bold">高危告警</span>
+                                                <div>
+                                                    <button class="bg-blue-600 text-white text-xs py-1 px-2 rounded mr-2 hover:bg-blue-700">处理</button>
+                                                    <button class="bg-white bg-opacity-10 text-white text-xs py-1 px-2 rounded hover:bg-opacity-20">忽略</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert-item glass bg-opacity-10 p-3 rounded-lg">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <span class="status-indicator status-warning"></span>
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <h4 class="text-white font-bold">B区湿度将在2小时内超过阈值</h4>
+                                                <span class="text-white text-opacity-70 text-sm">30分钟前</span>
+                                            </div>
+                                            <p class="text-white text-opacity-80 text-sm mt-1">湿度增长趋势预测在14:30将达到90%，建议提前处理</p>
+                                            <div class="flex justify-between items-center mt-2">
+                                                <span class="text-yellow-400 text-sm font-bold">中危告警</span>
+                                                <div>
+                                                    <button class="bg-blue-600 text-white text-xs py-1 px-2 rounded mr-2 hover:bg-blue-700">处理</button>
+                                                    <button class="bg-white bg-opacity-10 text-white text-xs py-1 px-2 rounded hover:bg-opacity-20">忽略</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert-item glass bg-opacity-10 p-3 rounded-lg">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <span class="status-indicator status-warning"></span>
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <h4 class="text-white font-bold">系统存储空间不足</h4>
+                                                <span class="text-white text-opacity-70 text-sm">45分钟前</span>
+                                            </div>
+                                            <p class="text-white text-opacity-80 text-sm mt-1">当前剩余空间不足20%，预计3天后将填满</p>
+                                            <div class="flex justify-between items-center mt-2">
+                                                <span class="text-yellow-400 text-sm font-bold">中危告警</span>
+                                                <div>
+                                                    <button class="bg-blue-600 text-white text-xs py-1 px-2 rounded mr-2 hover:bg-blue-700">处理</button>
+                                                    <button class="bg-white bg-opacity-10 text-white text-xs py-1 px-2 rounded hover:bg-opacity-20">忽略</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert-item glass bg-opacity-10 p-3 rounded-lg">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <span class="status-indicator status-normal"></span>
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <h4 class="text-white font-bold">C区传感器连接不稳定</h4>
+                                                <span class="text-white text-opacity-70 text-sm">1小时前</span>
+                                            </div>
+                                            <p class="text-white text-opacity-80 text-sm mt-1">传感器在过去1小时内出现3次连接中断，每次持续时间不超过30秒</p>
+                                            <div class="flex justify-between items-center mt-2">
+                                                <span class="text-blue-400 text-sm font-bold">低危告警</span>
+                                                <div>
+                                                    <button class="bg-blue-600 text-white text-xs py-1 px-2 rounded mr-2 hover:bg-blue-700">处理</button>
+                                                    <button class="bg-white bg-opacity-10 text-white text-xs py-1 px-2 rounded hover:bg-opacity-20">忽略</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert-item glass bg-opacity-10 p-3 rounded-lg">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <span class="status-indicator status-warning"></span>
+                                        </div>
+                                        <div class="ml-2 flex-grow">
+                                            <div class="flex justify-between">
+                                                <h4 class="text-white font-bold">数据备份延迟</h4>
+                                                <span class="text-white text-opacity-70 text-sm">2小时前</span>
+                                            </div>
+                                            <p class="text-white text-opacity-80 text-sm mt-1">上一次自动备份已延迟45分钟，可能影响数据安全</p>
+                                            <div class="flex justify-between items-center mt-2">
+                                                <span class="text-yellow-400 text-sm font-bold">中危告警</span>
+                                                <div>
+                                                    <button class="bg-blue-600 text-white text-xs py-1 px-2 rounded mr-2 hover:bg-blue-700">处理</button>
+                                                    <button class="bg-white bg-opacity-10 text-white text-xs py-1 px-2 rounded hover:bg-opacity-20">忽略</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 系统状态和数据分布 -->
+                        <div class="glass p-4">
+                            <h3 class="text-white text-lg font-bold mb-4">数据分布</h3>
+                            <div class="chart-container mb-4">
+                                <svg width="100%" height="100%" viewBox="0 0 200 200">
+                                    <g transform="translate(100, 100)">
+                                        <!-- 温度传感器 -->
+                                        <path d="M 0 0 L 0 -80 A 80 80 0 0 1 76.8 -22.4 Z" fill="#3B82F6" class="pie-slice" />
+                                        <!-- 湿度传感器 -->
+                                        <path d="M 0 0 L 76.8 -22.4 A 80 80 0 0 1 49.6 62.4 Z" fill="#10B981" class="pie-slice" />
+                                        <!-- 压力传感器 -->
+                                        <path d="M 0 0 L 49.6 62.4 A 80 80 0 0 1 -49.6 62.4 Z" fill="#F59E0B" class="pie-slice" />
+                                        <!-- 其他传感器 -->
+                                        <path d="M 0 0 L -49.6 62.4 A 80 80 0 0 1 -76.8 -22.4 Z" fill="#EC4899" class="pie-slice" />
+                                        <!-- 视频监控 -->
+                                        <path d="M 0 0 L -76.8 -22.4 A 80 80 0 0 1 0 -80 Z" fill="#8B5CF6" class="pie-slice" />
+                                    </g>
+                                    <!-- 图例 -->
+                                    <g transform="translate(10, 160)">
+                                        <rect x="0" y="0" width="10" height="10" fill="#3B82F6" />
+                                        <text x="15" y="9" fill="white" font-size="10">温度传感器 30%</text>
+                                    </g>
+                                    <g transform="translate(10, 175)">
+                                        <rect x="0" y="0" width="10" height="10" fill="#10B981" />
+                                        <text x="15" y="9" fill="white" font-size="10">湿度传感器 25%</text>
+                                    </g>
+                                    <g transform="translate(10, 190)">
+                                        <rect x="0" y="0" width="10" height="10" fill="#F59E0B" />
+                                        <text x="15" y="9" fill="white" font-size="10">压力传感器 20%</text>
+                                    </g>
+                                    <g transform="translate(120, 160)">
+                                        <rect x="0" y="0" width="10" height="10" fill="#EC4899" />
+                                        <text x="15" y="9" fill="white" font-size="10">其他传感器 15%</text>
+                                    </g>
+                                    <g transform="translate(120, 175)">
+                                        <rect x="0" y="0" width="10" height="10" fill="#8B5CF6" />
+                                        <text x="15" y="9" fill="white" font-size="10">视频监控 10%</text>
+                                    </g>
+                                </svg>
+                            </div>
+                            
+                            <h3 class="text-white text-lg font-bold mb-4">系统状态</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-white text-sm mb-1">
+                                        <span>CPU 使用率</span>
+                                        <span id="cpu-usage">74%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 74%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white text-sm mb-1">
+                                        <span>内存使用率</span>
+                                        <span id="memory-usage">50%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white text-sm mb-1">
+                                        <span>磁盘使用率</span>
+                                        <span id="disk-usage">70%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="bg-yellow-600 h-2 rounded-full" style="width: 70%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white text-sm mb-1">
+                                        <span>网络带宽</span>
+                                        <span id="network-usage">35%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="bg-purple-600 h-2 rounded-full" style="width: 35%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 设置用户名
+            const userNameDisplay = document.getElementById('username-display');
+            if (userNameDisplay) {
+                userNameDisplay.textContent = localStorage.getItem('username') || 'admin';
+            }
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 初始化日期显示
+            updateDateTime();
+            
+            // 初始化仪表盘
+            updateGauges();
+            
+            // 定时更新数据
+            setInterval(updateDashboardData, 5000);
+            setInterval(updateDateTime, 1000);
+            
+            // 绑定事件处理
+            document.getElementById('refresh-all').addEventListener('click', refreshAllData);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            document.getElementById('chart-timespan').addEventListener('change', updateCharts);
+            
+            // 添加鼠标悬停效果
+            addChartHoverEffects();
+        });
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particlesCount = 30;
+            
+            if (!particlesContainer) return;
+            
+            for (let i = 0; i < particlesCount; i++) {
+                const size = Math.random() * 4 + 1;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                
+                // 随机动画
+                const animationDuration = Math.random() * 20 + 10;
+                const animationDelay = Math.random() * 5;
+                
+                particle.style.animation = `float ${animationDuration}s ease-in-out infinite`;
+                particle.style.animationDelay = `${animationDelay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 更新日期和时间
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            
+            const dateDisplay = document.getElementById('current-date');
+            if (dateDisplay) {
+                dateDisplay.textContent = dateStr;
+            }
+        }
+        
+        // 更新仪表盘
+        function updateGauges() {
+            // 系统状态仪表盘
+            const systemPercentage = 95;
+            const systemGauge = document.getElementById('system-gauge');
+            const systemText = document.getElementById('system-percentage');
+            
+            if (systemGauge && systemText) {
+                const gaugeValue = 1 - (systemPercentage / 100);
+                const arcLength = 3.14 * 50; // 半圆周长
+                const dashOffset = arcLength * gaugeValue;
+                systemGauge.style.strokeDasharray = `${arcLength} ${arcLength}`;
+                systemGauge.style.strokeDashoffset = dashOffset;
+                systemText.textContent = `${systemPercentage}%`;
+            }
+            
+            // CPU 环形图
+            updateDonutChart('cpu-circle', 'cpu-text', 74);
+            
+            // 内存环形图
+            updateDonutChart('memory-circle', 'memory-text', 50);
+            
+            // 磁盘环形图
+            updateDonutChart('disk-circle', 'disk-text', 70);
+        }
+        
+        // 更新环形图
+        function updateDonutChart(circleId, textId, percentage) {
+            const circle = document.getElementById(circleId);
+            const text = document.getElementById(textId);
+            
+            if (circle && text) {
+                const radius = 40;
+                const circumference = 2 * Math.PI * radius;
+                const dashOffset = circumference * (1 - percentage / 100);
+                
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                circle.style.strokeDashoffset = dashOffset;
+                text.textContent = `${percentage}%`;
+            }
+        }
+        
+        // 添加图表悬停效果
+        function addChartHoverEffects() {
+            const pieSlices = document.querySelectorAll('.pie-slice');
+            
+            pieSlices.forEach(slice => {
+                slice.addEventListener('mouseover', function() {
+                    this.style.opacity = '0.8';
+                });
+                
+                slice.addEventListener('mouseout', function() {
+                    this.style.opacity = '1';
+                });
+            });
+        }
+        
+        // 更新仪表盘数据
+        function updateDashboardData() {
+            // 随机更新系统状态
+            const systemPercentage = getRandomInt(92, 98);
+            updateGaugeValue('system-gauge', 'system-percentage', systemPercentage);
+            
+            // 更新采集点数据
+            updateCardValue('active-sensors', getRandomInt(26, 30));
+            updateCardValue('warning-sensors', getRandomInt(2, 5));
+            updateCardValue('offline-sensors', getRandomInt(0, 2));
+            updateCardValue('sensor-count', getRandomInt(30, 34));
+            
+            // 更新数据流量
+            const inputRate = (Math.random() * 0.2 + 1.4).toFixed(1);
+            const outputRate = (Math.random() * 0.2 + 1.1).toFixed(1);
+            const efficiency = Math.round((parseFloat(outputRate) / parseFloat(inputRate)) * 100);
+            
+            updateCardValue('input-rate', `${inputRate} <span class="text-xs">GB/h</span>`);
+            updateCardValue('output-rate', `${outputRate} <span class="text-xs">GB/h</span>`);
+            updateCardValue('efficiency', `${efficiency}%`);
+            updateCardValue('data-rate', `${outputRate} <span class="text-lg">GB/小时</span>`);
+            
+            // 更新告警数据
+            const highAlerts = getRandomInt(1, 2);
+            const mediumAlerts = getRandomInt(2, 4);
+            const lowAlerts = getRandomInt(1, 3);
+            const totalAlerts = highAlerts + mediumAlerts + lowAlerts;
+            
+            updateCardValue('high-alerts', highAlerts);
+            updateCardValue('medium-alerts', mediumAlerts);
+            updateCardValue('low-alerts', lowAlerts);
+            updateCardValue('alert-count', totalAlerts);
+            
+            // 更新系统资源使用情况
+            const cpuUsage = getRandomInt(70, 80);
+            const memoryUsage = getRandomInt(45, 55);
+            const diskUsage = getRandomInt(68, 72);
+            const networkUsage = getRandomInt(30, 40);
+            
+            updateDonutChart('cpu-circle', 'cpu-text', cpuUsage);
+            updateDonutChart('memory-circle', 'memory-text', memoryUsage);
+            updateDonutChart('disk-circle', 'disk-text', diskUsage);
+            
+            document.getElementById('cpu-usage').textContent = `${cpuUsage}%`;
+            document.querySelector('div.bg-blue-600.h-2.rounded-full').style.width = `${cpuUsage}%`;
+            
+            document.getElementById('memory-usage').textContent = `${memoryUsage}%`;
+            document.querySelector('div.bg-green-600.h-2.rounded-full').style.width = `${memoryUsage}%`;
+            
+            document.getElementById('disk-usage').textContent = `${diskUsage}%`;
+            document.querySelector('div.bg-yellow-600.h-2.rounded-full').style.width = `${diskUsage}%`;
+            
+            document.getElementById('network-usage').textContent = `${networkUsage}%`;
+            document.querySelector('div.bg-purple-600.h-2.rounded-full').style.width = `${networkUsage}%`;
+            
+            // 更新运行时间
+            const days = getRandomInt(7, 8);
+            const hours = getRandomInt(10, 15);
+            const minutes = getRandomInt(0, 59);
+            document.getElementById('uptime').textContent = `${days}天 ${hours}小时 ${minutes}分钟`;
+        }
+        
+        // 更新仪表盘值
+        function updateGaugeValue(gaugeId, textId, percentage) {
+            const gauge = document.getElementById(gaugeId);
+            const text = document.getElementById(textId);
+            
+            if (gauge && text) {
+                const gaugeValue = 1 - (percentage / 100);
+                const arcLength = 3.14 * 50; // 半圆周长
+                const dashOffset = arcLength * gaugeValue;
+                gauge.style.strokeDashoffset = dashOffset;
+                text.textContent = `${percentage}%`;
+            }
+        }
+        
+        // 更新卡片值
+        function updateCardValue(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = value;
+            }
+        }
+        
+        // 更新图表
+        function updateCharts() {
+            const timespan = document.getElementById('chart-timespan').value;
+            console.log(`Updating charts for timespan: ${timespan}`);
+            // 在实际应用中，这里会根据选择的时间跨度来更新图表数据
+        }
+        
+        // 刷新所有数据
+        function refreshAllData() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            refreshIcon.classList.add('spinning');
+            
+            // 模拟加载
+            setTimeout(() => {
+                updateDashboardData();
+                refreshIcon.classList.remove('spinning');
+            }, 1000);
+        }
+        
+        // 辅助函数：获取指定范围的随机整数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
