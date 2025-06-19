@@ -1,0 +1,605 @@
+
+<!-- management_monitoring_system/frontend/analysis-center.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智能分析中心 | 管理与监控信息共享系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass:hover {
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            border-left: 4px solid #10B981;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #10B981, #3B82F6);
+            transition: width 0.3s ease;
+        }
+        
+        .refresh-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .analysis-card {
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .trend-up {
+            color: #10B981;
+        }
+        
+        .trend-down {
+            color: #EF4444;
+        }
+        
+        .highlight {
+            animation: highlight 1s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: transparent; }
+        }
+        
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 侧边栏 -->
+            <div class="lg:w-1/5">
+                <div class="glass p-5 mb-6">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                        <h1 class="text-white text-xl font-bold">管理与监控信息共享系统</h1>
+                    </div>
+                    
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="dashboard.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>控制面板</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="data-collection.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-database mr-3"></i>
+                                <span>数据采集</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="stream-processing.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-stream mr-3"></i>
+                                <span>流式处理</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="analysis-center.html" class="nav-item active flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-brain mr-3"></i>
+                                <span>智能分析</span>
+                                <span class="bg-green-500 text-xs font-bold px-2 py-1 rounded-full ml-auto">活跃</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="export.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-file-export mr-3"></i>
+                                <span>数据导出</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass p-5">
+                    <h3 class="text-white text-lg font-bold mb-4">用户信息</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-white font-medium" id="username-display">admin</p>
+                            <p class="text-white text-opacity-70 text-sm">系统管理员</p>
+                        </div>
+                    </div>
+                    <hr class="border-white border-opacity-20 my-4">
+                    <button id="logout-btn" class="w-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-4 rounded-lg transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="lg:w-4/5">
+                <div class="glass p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-white text-2xl font-bold">智能分析中心</h2>
+                            <p class="text-white text-opacity-80">数据洞察与预测分析</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white bg-opacity-10 rounded-lg px-3 py-2 text-white">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span id="current-date">2025-05-06</span>
+                            </div>
+                            <button id="refresh-all" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition duration-300">
+                                <i class="fas fa-sync-alt mr-2 refresh-icon" id="refresh-icon"></i> 刷新分析
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="glass analysis-card p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-white font-bold">异常检测</h3>
+                                <div class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">12 异常</div>
+                            </div>
+                            <div class="text-white text-opacity-80 text-sm mb-3">过去24小时检测到的异常事件</div>
+                            <div class="flex items-center">
+                                <span class="text-white text-2xl font-bold mr-2">12</span>
+                                <span class="text-red-400 text-sm">+3 <i class="fas fa-arrow-up"></i></span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass analysis-card p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-white font-bold">预测准确率</h3>
+                                <div class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">92%</div>
+                            </div>
+                            <div class="text-white text-opacity-80 text-sm mb-3">基于历史数据的预测准确率</div>
+                            <div class="flex items-center">
+                                <span class="text-white text-2xl font-bold mr-2">92%</span>
+                                <span class="text-green-400 text-sm">+2% <i class="fas fa-arrow-up"></i></span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass analysis-card p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-white font-bold">趋势预测</h3>
+                                <div class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">3 预警</div>
+                            </div>
+                            <div class="text-white text-opacity-80 text-sm mb-3">未来24小时可能发生的事件</div>
+                            <div class="flex items-center">
+                                <span class="text-white text-2xl font-bold mr-2">3</span>
+                                <span class="text-yellow-400 text-sm">-1 <i class="fas fa-arrow-down"></i></span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass analysis-card p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-white font-bold">模型性能</h3>
+                                <div class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">85%</div>
+                            </div>
+                            <div class="text-white text-opacity-80 text-sm mb-3">AI模型综合评分</div>
+                            <div class="flex items-center">
+                                <span class="text-white text-2xl font-bold mr-2">85%</span>
+                                <span class="text-blue-400 text-sm">稳定</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析图表 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="glass p-4">
+                            <h3 class="text-white text-lg font-bold mb-4">异常事件分布</h3>
+                            <div class="chart-container">
+                                <div class="text-white text-opacity-70 text-center py-16">
+                                    <i class="fas fa-chart-pie text-4xl mb-2"></i>
+                                    <p>异常事件分布图表</p>
+                                    <p class="text-sm">正在开发中</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4">
+                            <h3 class="text-white text-lg font-bold mb-4">趋势预测分析</h3>
+                            <div class="chart-container">
+                                <div class="text-white text-opacity-70 text-center py-16">
+                                    <i class="fas fa-chart-line text-4xl mb-2"></i>
+                                    <p>趋势预测分析图表</p>
+                                    <p class="text-sm">正在开发中</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 分析结果表格 -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white text-xl font-bold">分析结果</h3>
+                            <div class="flex items-center">
+                                <div class="relative mr-3">
+                                    <input type="text" id="search-input" placeholder="搜索分析结果" class="bg-white bg-opacity-10 text-white placeholder-white placeholder-opacity-70 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-search absolute right-3 top-2.5 text-white text-opacity-70"></i>
+                                </div>
+                                <select id="sort-select" class="bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="time">按时间排序</option>
+                                    <option value="severity">按严重程度排序</option>
+                                    <option value="type">按类型排序</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="glass overflow-x-auto">
+                            <table class="w-full text-white">
+                                <thead>
+                                    <tr class="border-b border-white border-opacity-20 text-left">
+                                        <th class="py-3 px-4">ID</th>
+                                        <th class="py-3 px-4">分析类型</th>
+                                        <th class="py-3 px-4">描述</th>
+                                        <th class="py-3 px-4">严重程度</th>
+                                        <th class="py-3 px-4">置信度</th>
+                                        <th class="py-3 px-4">时间</th>
+                                        <th class="py-3 px-4">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analysis-table">
+                                    <tr class="border-b border-white border-opacity-10">
+                                        <td class="py-3 px-4">AN-1001</td>
+                                        <td class="py-3 px-4">异常检测</td>
+                                        <td class="py-3 px-4">A区温度传感器异常高值</td>
+                                        <td class="py-3 px-4"><span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">高</span></td>
+                                        <td class="py-3 px-4">92%</td>
+                                        <td class="py-3 px-4">2025-05-06 10:15</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-400 hover:text-blue-300 mr-2">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-yellow-400 hover:text-yellow-300">
+                                                <i class="fas fa-flag"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-white border-opacity-10">
+                                        <td class="py-3 px-4">AN-1002</td>
+                                        <td class="py-3 px-4">趋势预测</td>
+                                        <td class="py-3 px-4">B区湿度将在2小时内超过阈值</td>
+                                        <td class="py-3 px-4"><span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">中</span></td>
+                                        <td class="py-3 px-4">85%</td>
+                                        <td class="py-3 px-4">2025-05-06 09:30</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-400 hover:text-blue-300 mr-2">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-yellow-400 hover:text-yellow-300">
+                                                <i class="fas fa-flag"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-white border-opacity-10">
+                                        <td class="py-3 px-4">AN-1003</td>
+                                        <td class="py-3 px-4">关联分析</td>
+                                        <td class="py-3 px-4">温度升高与设备故障关联性高</td>
+                                        <td class="py-3 px-4"><span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">中高</span></td>
+                                        <td class="py-3 px-4">88%</td>
+                                        <td class="py-3 px-4">2025-05-06 08:45</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-400 hover:text-blue-300 mr-2">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-yellow-400 hover:text-yellow-300">
+                                                <i class="fas fa-flag"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">AN-1004</td>
+                                        <td class="py-3 px-4">异常检测</td>
+                                        <td class="py-3 px-4">C区压力传感器数据缺失</td>
+                                        <td class="py-3 px-4"><span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">低</span></td>
+                                        <td class="py-3 px-4">78%</td>
+                                        <td class="py-3 px-4">2025-05-06 08:20</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-400 hover:text-blue-300 mr-2">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-yellow-400 hover:text-yellow-300">
+                                                <i class="fas fa-flag"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- AI模型管理 -->
+                    <div>
+                        <h3 class="text-white text-xl font-bold mb-4">AI模型管理</h3>
+                        <div class="glass p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <h4 class="text-white font-bold mb-3">模型状态</h4>
+                                    <div class="flex items-center mb-2">
+                                        <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                        <span class="text-white">异常检测模型</span>
+                                        <span class="ml-auto text-white">运行中</span>
+                                    </div>
+                                    <div class="flex items-center mb-2">
+                                        <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                        <span class="text-white">趋势预测模型</span>
+                                        <span class="ml-auto text-white">运行中</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
+                                        <span class="text-white">关联分析模型</span>
+                                        <span class="ml-auto text-white">训练中</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-white font-bold mb-3">模型性能</h4>
+                                    <div class="text-white mb-1">准确率: <span class="font-bold">85%</span></div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2 mb-3">
+                                        <div class="progress-bar" style="width: 85%"></div>
+                                    </div>
+                                    <div class="text-white mb-1">召回率: <span class="font-bold">78%</span></div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2 mb-3">
+                                        <div class="progress-bar" style="width: 78%"></div>
+                                    </div>
+                                    <div class="text-white mb-1">F1分数: <span class="font-bold">81%</span></div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 81%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-white font-bold mb-3">模型操作</h4>
+                                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mb-3 transition duration-300">
+                                        <i class="fas fa-sync-alt mr-2"></i> 重新训练
+                                    </button>
+                                    <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg mb-3 transition duration-300">
+                                        <i class="fas fa-play mr-2"></i> 启动所有模型
+                                    </button>
+                                    <button class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition duration-300">
+                                        <i class="fas fa-stop mr-2"></i> 停止所有模型
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 设置用户名
+            const userNameDisplay = document.getElementById('username-display');
+            if (userNameDisplay) {
+                userNameDisplay.textContent = localStorage.getItem('username') || 'admin';
+            }
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 初始化日期显示
+            updateDateTime();
+            
+            // 绑定事件处理
+            document.getElementById('refresh-all').addEventListener('click', refreshAllData);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            document.getElementById('search-input').addEventListener('input', filterAnalysis);
+            document.getElementById('sort-select').addEventListener('change', sortAnalysis);
+        });
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particlesCount = 30;
+            
+            if (!particlesContainer) return;
+            
+            for (let i = 0; i < particlesCount; i++) {
+                const size = Math.random() * 4 + 1;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                
+                // 随机动画
+                const animationDuration = Math.random() * 20 + 10;
+                const animationDelay = Math.random() * 5;
+                
+                particle.style.animation = `float ${animationDuration}s ease-in-out infinite`;
+                particle.style.animationDelay = `${animationDelay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 更新日期和时间
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            
+            const dateDisplay = document.getElementById('current-date');
+            if (dateDisplay) {
+                dateDisplay.textContent = dateStr;
+            }
+        }
+        
+        // 刷新所有数据
+        function refreshAllData() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            refreshIcon.classList.add('spinning');
+            
+            // 模拟加载
+            setTimeout(() => {
+                updateDateTime();
+                
+                // 模拟数据更新
+                const table = document.getElementById('analysis-table');
+                if (table) {
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const confidenceCell = row.querySelector('td:nth-child(5)');
+                        if (confidenceCell) {
+                            const currentValue = parseInt(confidenceCell.textContent);
+                            const newValue = Math.min(100, currentValue + getRandomInt(-2, 5));
+                            confidenceCell.textContent = `${newValue}%`;
+                            confidenceCell.classList.add('highlight');
+                            setTimeout(() => {
+                                confidenceCell.classList.remove('highlight');
+                            }, 1000);
+                        }
+                    });
+                }
+                
+                refreshIcon.classList.remove('spinning');
+            }, 1000);
+        }
+        
+        // 过滤分析结果
+        function filterAnalysis() {
+            const searchInput = document.getElementById('search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+            const rows = document.querySelectorAll('#analysis-table tr');
+            
+            rows.forEach(row => {
+                const type = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const desc = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                
+                if (type.includes(searchTerm) || desc.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // 排序分析结果
+        function sortAnalysis() {
+            const sortSelect = document.getElementById('sort-select');
+            const sortBy = sortSelect.value;
+            const tableBody = document.getElementById('analysis-table');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch (sortBy) {
+                    case 'time':
+                        aValue = a.querySelector('td:nth-child(6)').textContent;
+                        bValue = b.querySelector('td:nth-child(6)').textContent;
+                        return new Date(bValue) - new Date(aValue);
+                    case 'severity':
+                        const severityMap = { '高': 3, '中高': 2, '中': 1, '低': 0 };
+                        aValue = a.querySelector('td:nth-child(4) span').textContent;
+                        bValue = b.querySelector('td:nth-child(4) span').textContent;
+                        return severityMap[bValue] - severityMap[aValue];
+                    case 'type':
+                        aValue = a.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                        bValue = b.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                        return aValue.localeCompare(bValue);
+                    default:
+                        return 0;
+                }
+            });
+            
+            // 清空表格并重新添加排序后的行
+            tableBody.innerHTML = '';
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+        
+        // 辅助函数：获取指定范围的随机整数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
