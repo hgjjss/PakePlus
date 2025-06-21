@@ -1,0 +1,996 @@
+
+<!-- management_monitoring_system/frontend/data-collection.html -->
+<!DOCTYPE html>
+<htmllang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实时数据采集模块 | 管理与监控信息共享系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass:hover {
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+        
+        .data-card {
+            transition: all 0.3s ease;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #10B981;
+            box-shadow: 0 0 10px #10B981;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-idle {
+            background-color: #F59E0B;
+        }
+        
+        .status-error {
+            background-color: #EF4444;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            border-left: 4px solid #10B981;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .sensor-data-value {
+            transition: all 0.3s ease;
+        }
+        
+        .highlight {
+            animation: highlight 1s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: transparent; }
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #10B981, #3B82F6);
+            transition: width 0.3s ease;
+        }
+        
+        .counter-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 0.7rem;
+        }
+        
+        .refresh-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 侧边栏 -->
+            <div class="lg:w-1/5">
+                <div class="glass p-5 mb-6">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                        <h1 class="text-white text-xl font-bold">管理与监控信息共享系统</h1>
+                    </div>
+                    
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="dashboard.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>控制面板</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="data-collection.html" class="nav-item active flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-database mr-3"></i>
+                                <span>数据采集</span>
+                                <span class="bg-green-500 text-xs font-bold px-2 py-1 rounded-full ml-auto">活跃</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="stream-processing.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-stream mr-3"></i>
+                                <span>流式处理</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="analysis-center.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-brain mr-3"></i>
+                                <span>智能分析</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="export.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-file-export mr-3"></i>
+                                <span>数据导出</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass p-5">
+                    <h3 class="text-white text-lg font-bold mb-4">用户信息</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-white font-medium" id="username-display">admin</p>
+                            <p class="text-white text-opacity-70 text-sm">系统管理员</p>
+                        </div>
+                    </div>
+                    <hr class="border-white border-opacity-20 my-4">
+                    <button id="logout-btn" class="w-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-4 rounded-lg transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="lg:w-4/5">
+                <div class="glass p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-white text-2xl font-bold">实时数据采集</h2>
+                            <p class="text-white text-opacity-80">监控和管理所有数据源</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white bg-opacity-10 rounded-lg px-3 py-2 text-white">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span id="current-date">2025-05-06</span>
+                            </div>
+                            <button id="refresh-all" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition duration-300">
+                                <i class="fas fa-sync-alt mr-2 refresh-icon" id="refresh-icon"></i> 刷新所有
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="glass data-card p-4 relative">
+                            <div class="absolute top-2 right-2 text-white">
+                                <button class="hover:text-blue-300" onclick="toggleDataSource(0)">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">传感器采集点</h3>
+                                <span class="text-sm text-white bg-green-600 rounded-full px-2 py-0.5">在线</span>
+                            </div>
+                            <div class="flex items-center text-white mb-3">
+                                <span class="status-indicator status-active"></span>
+                                <span>活跃采集中</span>
+                            </div>
+                            <div class="text-3xl font-bold text-white mb-2" id="sensor-count">32</div>
+                            <div class="text-white text-opacity-70">总数据点</div>
+                            <div class="mt-3">
+                                <div class="text-white text-sm flex justify-between mb-1">
+                                    <span>利用率</span>
+                                    <span id="sensor-usage">76%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 76%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass data-card p-4 relative">
+                            <div class="absolute top-2 right-2 text-white">
+                                <button class="hover:text-blue-300" onclick="toggleDataSource(1)">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">视频监控流</h3>
+                                <span class="text-sm text-white bg-yellow-600 rounded-full px-2 py-0.5">部分在线</span>
+                            </div>
+                            <div class="flex items-center text-white mb-3">
+                                <span class="status-indicator status-idle"></span>
+                                <span>间歇采集</span>
+                            </div>
+                            <div class="text-3xl font-bold text-white mb-2" id="video-count">18</div>
+                            <div class="text-white text-opacity-70">活跃摄像头</div>
+                            <div class="mt-3">
+                                <div class="text-white text-sm flex justify-between mb-1">
+                                    <span>带宽占用</span>
+                                    <span id="video-usage">58%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 58%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass data-card p-4 relative">
+                            <div class="absolute top-2 right-2 text-white">
+                                <button class="hover:text-blue-300" onclick="toggleDataSource(2)">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">API数据源</h3>
+                                <span class="text-sm text-white bg-green-600 rounded-full px-2 py-0.5">在线</span>
+                            </div>
+                            <div class="flex items-center text-white mb-3">
+                                <span class="status-indicator status-active"></span>
+                                <span>持续同步</span>
+                            </div>
+                            <div class="text-3xl font-bold text-white mb-2" id="api-count">7</div>
+                            <div class="text-white text-opacity-70">已连接API</div>
+                            <div class="mt-3">
+                                <div class="text-white text-sm flex justify-between mb-1">
+                                    <span>同步完成度</span>
+                                    <span id="api-usage">92%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 92%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass data-card p-4 relative">
+                            <div class="absolute top-2 right-2 text-white">
+                                <button class="hover:text-blue-300" onclick="toggleDataSource(3)">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-bold">人工录入</h3>
+                                <span class="text-sm text-white bg-red-600 rounded-full px-2 py-0.5">待处理</span>
+                            </div>
+                            <div class="flex items-center text-white mb-3">
+                                <span class="status-indicator status-error"></span>
+                                <span>需要确认</span>
+                            </div>
+                            <div class="text-3xl font-bold text-white mb-2" id="manual-count">12</div>
+                            <div class="text-white text-opacity-70">未确认数据</div>
+                            <div class="mt-3">
+                                <div class="text-white text-sm flex justify-between mb-1">
+                                    <span>处理进度</span>
+                                    <span id="manual-usage">33%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 33%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 实时数据流 -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white text-xl font-bold">实时数据流</h3>
+                            <div class="flex space-x-2">
+                                <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300" id="pause-stream">
+                                    <i class="fas fa-pause mr-1"></i> 暂停
+                                </button>
+                                <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300" id="clear-stream">
+                                    <i class="fas fa-eraser mr-1"></i> 清空
+                                </button>
+                            </div>
+                        </div>
+                        <div class="glass p-4 max-h-64 overflow-y-auto" id="data-stream-container">
+                            <div class="text-white text-opacity-70 text-center py-4">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> 正在加载实时数据流...
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 传感器数据列表 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white text-xl font-bold">传感器数据</h3>
+                            <div class="flex items-center">
+                                <div class="relative mr-3">
+                                    <input type="text" id="search-input" placeholder="搜索传感器" class="bg-white bg-opacity-10 text-white placeholder-white placeholder-opacity-70 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-search absolute right-3 top-2.5 text-white text-opacity-70"></i>
+                                </div>
+                                <select id="sort-select" class="bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="name">按名称排序</option>
+                                    <option value="status">按状态排序</option>
+                                    <option value="value">按数值排序</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="glass overflow-x-auto">
+                            <table class="w-full text-white">
+                                <thead>
+                                    <tr class="border-b border-white border-opacity-20 text-left">
+                                        <th class="py-3 px-4">传感器ID</th>
+                                        <th class="py-3 px-4">名称</th>
+                                        <th class="py-3 px-4">类型</th>
+                                        <th class="py-3 px-4">位置</th>
+                                        <th class="py-3 px-4">最新数值</th>
+                                        <th class="py-3 px-4">状态</th>
+                                        <th class="py-3 px-4">最后更新</th>
+                                        <th class="py-3 px-4">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sensor-data-table">
+                                    <!-- 数据会通过JavaScript动态插入 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 底部卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass p-6">
+                        <h3 class="text-white text-lg font-bold mb-4">新增数据源</h3>
+                        <p class="text-white text-opacity-80 mb-4">添加新的数据采集点到系统中</p>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-white mb-2">数据源类型</label>
+                                <select class="w-full bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="sensor">物联网传感器</option>
+                                    <option value="camera">视频监控</option>
+                                    <option value="api">第三方API</option>
+                                    <option value="manual">人工录入</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-white mb-2">数据源名称</label>
+                                <input type="text" class="w-full bg-white bg-opacity-10 text-white py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="输入名称...">
+                            </div>
+                            <div>
+                                <label class="block text-white mb-2">接入方式</label>
+                                <div class="flex space-x-3">
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="access-type" class="mr-2"> MQTT
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="access-type" class="mr-2"> HTTP
+                                    </label>
+                                    <label class="flex items-center text-white">
+                                        <input type="radio" name="access-type" class="mr-2"> WebSocket
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
+                                <i class="fas fa-plus mr-2"></i> 添加数据源
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="glass p-6">
+                        <h3 class="text-white text-lg font-bold mb-4">系统状态</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">CPU使用率</span>
+                                    <span class="text-white" id="cpu-usage">42%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 42%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">内存使用率</span>
+                                    <span class="text-white" id="memory-usage">68%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">存储空间</span>
+                                    <span class="text-white" id="storage-usage">27%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 27%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">网络带宽</span>
+                                    <span class="text-white" id="network-usage">51%</span>
+                                </div>
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar" style="width: 51%"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 rounded-lg p-3">
+                                <div class="flex justify-between text-white mb-1">
+                                    <span>系统运行时间</span>
+                                    <span id="uptime">7天 13小时 22分钟</span>
+                                </div>
+                                <div class="flex justify-between text-white">
+                                    <span>数据总量</span>
+                                    <span id="total-data">4.37 TB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 设置用户名
+            const userNameDisplay = document.getElementById('username-display');
+            if (userNameDisplay) {
+                userNameDisplay.textContent = localStorage.getItem('username') || 'admin';
+            }
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 初始化日期显示
+            updateDateTime();
+            
+            // 初始化传感器数据表
+            initSensorTable();
+            
+            // 初始化实时数据流
+            startDataStream();
+            
+            // 定时更新数据
+            setInterval(updateData, 5000);
+            setInterval(updateSystemStatus, 8000);
+            setInterval(updateDateTime, 1000);
+            
+            // 绑定事件处理
+            document.getElementById('refresh-all').addEventListener('click', refreshAllData);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            document.getElementById('pause-stream').addEventListener('click', toggleDataStream);
+            document.getElementById('clear-stream').addEventListener('click', clearDataStream);
+            document.getElementById('search-input').addEventListener('input', filterSensors);
+            document.getElementById('sort-select').addEventListener('change', sortSensors);
+        });
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particlesCount = 30;
+            
+            if (!particlesContainer) return;
+            
+            for (let i = 0; i < particlesCount; i++) {
+                const size = Math.random() * 4 + 1;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                
+                // 随机动画
+                const animationDuration = Math.random() * 20 + 10;
+                const animationDelay = Math.random() * 5;
+                
+                particle.style.animation = `float ${animationDuration}s ease-in-out infinite`;
+                particle.style.animationDelay = `${animationDelay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 更新日期和时间
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            const dateDisplay = document.getElementById('current-date');
+            if (dateDisplay) {
+                dateDisplay.textContent = dateStr;
+            }
+        }
+        
+        // 生成随机传感器数据
+        function generateSensorData() {
+            const types = ['温度', '湿度', '压力', '流量', '电压', '电流', 'pH值', '气体浓度'];
+            const locations = ['工厂A区', '工厂B区', '水处理厂', '发电站', '化学实验室', '仓库', '办公楼', '车间'];
+            const statuses = ['正常', '警告', '异常', '维护中', '离线'];
+            const statusClasses = ['text-green-400', 'text-yellow-400', 'text-red-400', 'text-blue-400', 'text-gray-400'];
+            
+            const data = [];
+            
+            for (let i = 1; i <= 10; i++) {
+                const typeIndex = Math.floor(Math.random() * types.length);
+                const locIndex = Math.floor(Math.random() * locations.length);
+                const statusIndex = Math.floor(Math.random() * statuses.length);
+                
+                let value, unit;
+                switch (types[typeIndex]) {
+                    case '温度':
+                        value = (Math.random() * 50 - 10).toFixed(1);
+                        unit = '°C';
+                        break;
+                    case '湿度':
+                        value = (Math.random() * 100).toFixed(1);
+                        unit = '%';
+                        break;
+                    case '压力':
+                        value = (Math.random() * 10).toFixed(2);
+                        unit = 'MPa';
+                        break;
+                    case '流量':
+                        value = (Math.random() * 200).toFixed(0);
+                        unit = 'L/min';
+                        break;
+                    case '电压':
+                        value = (Math.random() * 240).toFixed(1);
+                        unit = 'V';
+                        break;
+                    case '电流':
+                        value = (Math.random() * 20).toFixed(2);
+                        unit = 'A';
+                        break;
+                    case 'pH值':
+                        value = (Math.random() * 14).toFixed(1);
+                        unit = '';
+                        break;
+                    default:
+                        value = (Math.random() * 500).toFixed(0);
+                        unit = 'ppm';
+                }
+                
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                
+                data.push({
+                    id: `SEN-${i.toString().padStart(4, '0')}`,
+                    name: `${types[typeIndex]}传感器-${i}`,
+                    type: types[typeIndex],
+                    location: locations[locIndex],
+                    value: value,
+                    unit: unit,
+                    status: statuses[statusIndex],
+                    statusClass: statusClasses[statusIndex],
+                    lastUpdate: `${hours}:${minutes}:${seconds}`
+                });
+            }
+            
+            return data;
+        }
+        
+        // 初始化传感器数据表
+        function initSensorTable() {
+            const sensorData = generateSensorData();
+            const tableBody = document.getElementById('sensor-data-table');
+            
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            sensorData.forEach(sensor => {
+                const row = document.createElement('tr');
+                row.classList.add('border-b', 'border-white', 'border-opacity-10');
+                row.innerHTML = `
+                    <td class="py-3 px-4">${sensor.id}</td>
+                    <td class="py-3 px-4">${sensor.name}</td>
+                    <td class="py-3 px-4">${sensor.type}</td>
+                    <td class="py-3 px-4">${sensor.location}</td>
+                    <td class="py-3 px-4 sensor-data-value">
+                        <span class="font-bold">${sensor.value}</span> <span class="text-xs">${sensor.unit}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center ${sensor.statusClass}">
+                            <span class="w-2 h-2 rounded-full mr-2 ${sensor.status === '正常' ? 'bg-green-400' : 
+                                        sensor.status === '警告' ? 'bg-yellow-400' : 
+                                        sensor.status === '异常' ? 'bg-red-400' : 
+                                        sensor.status === '维护中' ? 'bg-blue-400' : 'bg-gray-400'}"></span>
+                            ${sensor.status}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${sensor.lastUpdate}</td>
+                    <td class="py-3 px-4">
+                        <button class="text-blue-400 hover:text-blue-300 mr-2" onclick="viewSensorDetail('${sensor.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="text-yellow-400 hover:text-yellow-300 mr-2" onclick="configureSensor('${sensor.id}')">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <button class="text-red-400 hover:text-red-300" onclick="disableSensor('${sensor.id}')">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 开始实时数据流
+        let streamInterval;
+        let isPaused = false;
+        const dataTypes = ['温度', '湿度', '压力', '流量', '电压', '电流', 'pH值', '气体浓度'];
+        const dataLocations = ['工厂A区', '工厂B区', '水处理厂', '发电站', '化学实验室', '仓库', '办公楼', '车间'];
+        
+        function startDataStream() {
+            const streamContainer = document.getElementById('data-stream-container');
+            if (!streamContainer) return;
+            
+            streamContainer.innerHTML = '';
+            
+            // 添加初始消息
+            addStreamMessage('系统', '数据采集服务已启动', 'bg-blue-600');
+            addStreamMessage('系统', '正在连接传感器网络...', 'bg-blue-600');
+            addStreamMessage('系统', '所有传感器已连接，开始接收数据', 'bg-green-600');
+            
+            // 开始周期性添加模拟数据
+            streamInterval = setInterval(() => {
+                if (isPaused) return;
+                
+                const type = dataTypes[Math.floor(Math.random() * dataTypes.length)];
+                const location = dataLocations[Math.floor(Math.random() * dataLocations.length)];
+                const randomValue = (Math.random() * 100).toFixed(2);
+                const isAlert = Math.random() > 0.8;
+                
+                let message;
+                let className;
+                
+                if (isAlert) {
+                    message = `[警告] ${location}的${type}传感器数值异常: ${randomValue}`;
+                    className = 'bg-red-600';
+                } else {
+                    message = `${location}的${type}传感器数据: ${randomValue}`;
+                    className = '';
+                }
+                
+                addStreamMessage('传感器', message, className);
+            }, 3000);
+        }
+        
+        function addStreamMessage(source, message, className) {
+            const streamContainer = document.getElementById('data-stream-container');
+            if (!streamContainer) return;
+            
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeStr = `${hours}:${minutes}:${seconds}`;
+            
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('mb-2', 'text-white', 'text-sm', 'flex', 'items-start');
+            
+            if (className) {
+                messageElement.classList.add(className, 'bg-opacity-20', 'p-2', 'rounded');
+            }
+            
+            messageElement.innerHTML = `
+                <span class="text-xs text-white text-opacity-70 mr-2">${timeStr}</span>
+                <span class="font-bold mr-2">[${source}]</span>
+                <span>${message}</span>
+            `;
+            
+            streamContainer.appendChild(messageElement);
+            streamContainer.scrollTop = streamContainer.scrollHeight;
+            
+            // 限制流消息数量
+            if (streamContainer.children.length > 50) {
+                streamContainer.removeChild(streamContainer.children[0]);
+            }
+        }
+        
+        function toggleDataStream() {
+            const button = document.getElementById('pause-stream');
+            isPaused = !isPaused;
+            
+            if (isPaused) {
+                button.innerHTML = '<i class="fas fa-play mr-1"></i> 继续';
+                button.classList.add('bg-green-600');
+                button.classList.remove('bg-white', 'bg-opacity-10');
+                addStreamMessage('系统', '数据流已暂停', 'bg-yellow-600');
+            } else {
+                button.innerHTML = '<i class="fas fa-pause mr-1"></i> 暂停';
+                button.classList.remove('bg-green-600');
+                button.classList.add('bg-white', 'bg-opacity-10');
+                addStreamMessage('系统', '数据流已恢复', 'bg-green-600');
+            }
+        }
+        
+        function clearDataStream() {
+            const streamContainer = document.getElementById('data-stream-container');
+            if (streamContainer) {
+                streamContainer.innerHTML = '';
+                addStreamMessage('系统', '数据流已清空', 'bg-blue-600');
+            }
+        }
+        
+        // 更新数据
+        function updateData() {
+            // 更新传感器数据
+            const sensorDataTable = document.getElementById('sensor-data-table');
+            if (sensorDataTable) {
+                const rows = sensorDataTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const valueCell = row.querySelector('.sensor-data-value');
+                    if (valueCell) {
+                        const valueSpan = valueCell.querySelector('span');
+                        const unitSpan = valueCell.querySelector('span.text-xs');
+                        if (valueSpan && unitSpan) {
+                            const oldValue = parseFloat(valueSpan.textContent);
+                            const newValue = (oldValue + (Math.random() * 2 - 1)).toFixed(1);
+                            valueSpan.textContent = newValue;
+                            valueCell.classList.add('highlight');
+                            setTimeout(() => {
+                                valueCell.classList.remove('highlight');
+                            }, 1000);
+                        }
+                    }
+                    
+                    const lastUpdateCell = row.querySelector('td:nth-child(7)');
+                    if (lastUpdateCell) {
+                        const now = new Date();
+                        const hours = now.getHours().toString().padStart(2, '0');
+                        const minutes = now.getMinutes().toString().padStart(2, '0');
+                        const seconds = now.getSeconds().toString().padStart(2, '0');
+                        lastUpdateCell.textContent = `${hours}:${minutes}:${seconds}`;
+                    }
+                });
+            }
+            
+            // 随机更新数据源统计
+            updateCardValue('sensor-count', getRandomInt(30, 35));
+            updateCardValue('video-count', getRandomInt(16, 20));
+            updateCardValue('api-count', getRandomInt(6, 8));
+            updateCardValue('manual-count', getRandomInt(10, 15));
+            
+            updateProgressBar('sensor-usage', getRandomInt(70, 80));
+            updateProgressBar('video-usage', getRandomInt(55, 65));
+            updateProgressBar('api-usage', getRandomInt(88, 96));
+            updateProgressBar('manual-usage', getRandomInt(30, 40));
+        }
+        
+        // 更新系统状态
+        function updateSystemStatus() {
+            updateProgressBar('cpu-usage', getRandomInt(35, 50));
+            updateProgressBar('memory-usage', getRandomInt(60, 75));
+            updateProgressBar('storage-usage', getRandomInt(25, 30));
+            updateProgressBar('network-usage', getRandomInt(45, 60));
+            
+            // 更新运行时间
+            const uptimeElement = document.getElementById('uptime');
+            if (uptimeElement) {
+                const days = getRandomInt(7, 8);
+                const hours = getRandomInt(0, 23);
+                const minutes = getRandomInt(0, 59);
+                uptimeElement.textContent = `${days}天 ${hours}小时 ${minutes}分钟`;
+            }
+            
+            // 更新数据总量
+            const totalDataElement = document.getElementById('total-data');
+            if (totalDataElement) {
+                const dataSize = (4.37 + Math.random() * 0.05).toFixed(2);
+                totalDataElement.textContent = `${dataSize} TB`;
+            }
+        }
+        
+        // 刷新所有数据
+        function refreshAllData() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            refreshIcon.classList.add('spinning');
+            
+            // 模拟加载
+            setTimeout(() => {
+                updateData();
+                updateSystemStatus();
+                initSensorTable();
+                
+                addStreamMessage('系统', '所有数据已刷新', 'bg-green-600');
+                
+                refreshIcon.classList.remove('spinning');
+            }, 1000);
+        }
+        
+        // 过滤传感器
+        function filterSensors() {
+            const searchInput = document.getElementById('search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+            const rows = document.querySelectorAll('#sensor-data-table tr');
+            
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const type = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const location = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || type.includes(searchTerm) || location.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // 排序传感器
+        function sortSensors() {
+            const sortSelect = document.getElementById('sort-select');
+            const sortBy = sortSelect.value;
+            const tableBody = document.getElementById('sensor-data-table');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch (sortBy) {
+                    case 'name':
+                        aValue = a.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                        bValue = b.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                        return aValue.localeCompare(bValue);
+                    case 'status':
+                        aValue = a.querySelector('td:nth-child(6)').textContent.trim();
+                        bValue = b.querySelector('td:nth-child(6)').textContent.trim();
+                        return aValue.localeCompare(bValue);
+                    case 'value':
+                        aValue = parseFloat(a.querySelector('.sensor-data-value span').textContent);
+                        bValue = parseFloat(b.querySelector('.sensor-data-value span').textContent);
+                        return bValue - aValue;
+                    default:
+                        return 0;
+                }
+            });
+            
+            // 清空表格并重新添加排序后的行
+            tableBody.innerHTML = '';
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+        
+        // 查看传感器详情
+        function viewSensorDetail(sensorId) {
+            alert(`正在开发中: 查看传感器 ${sensorId} 的详细信息。`);
+        }
+        
+        // 配置传感器
+        function configureSensor(sensorId) {
+            alert(`正在开发中: 配置传感器 ${sensorId} 的参数。`);
+        }
+        
+        // 禁用传感器
+        function disableSensor(sensorId) {
+            if (confirm(`确定要禁用传感器 ${sensorId} 吗？`)) {
+                alert(`正在开发中: 已禁用传感器 ${sensorId}。`);
+            }
+        }
+        
+        // 切换数据源
+        function toggleDataSource(index) {
+            alert(`正在开发中: 配置数据源 #${index+1}`);
+        }
+        
+        // 辅助函数：更新卡片值
+        function updateCardValue(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+        
+        // 辅助函数：更新进度条
+        function updateProgressBar(id, percentage) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = `${percentage}%`;
+                const progressBar = element.parentNode.nextElementSibling.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = `${percentage}%`;
+                }
+            }
+        }
+        
+        // 辅助函数：获取指定范围的随机整数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
