@@ -1,0 +1,464 @@
+
+<!-- video_monitoring_replay_service/frontend/device.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>监控视频数字化回放服务软件- 设备管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .main-container {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .device-card {
+            transition: all 0.3s ease;
+        }
+        .device-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .device-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .device-online {
+            background-color: #10b981;
+            box-shadow: 0 0 6px #10b981;
+        }
+        .device-offline {
+            background-color: #ef4444;
+        }
+        .device-warning {
+            background-color: #f59e0b;
+            box-shadow: 0 0 6px #f59e0b;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .progress-bar {
+            height: 6px;
+            border-radius: 3px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="particles" id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-6 relative z-10">
+        <!-- 顶部导航 -->
+        <div class="main-container rounded-xl p-4 mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center">
+                <span class="mr-2">📷</span> 设备管理中心
+            </h1>
+            <div class="flex space-x-4">
+                <a href="home.html" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition">
+                    <span class="mr-2">🏠</span> 返回主页
+                </a>
+                <button id="logoutBtn" class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 transition">
+                    退出登录
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 设备列表 -->
+            <div class="main-container rounded-xl p-6 lg:col-span-1">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-medium">设备列表</h2>
+                    <button id="refreshBtn" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600">
+                        <span class="text-lg">🔄</span>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div id="frontCameraCard" class="device-card p-4 rounded-lg bg-gray-800/50 cursor-pointer border-l-4 border-blue-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <span class="device-status device-online"></span>
+                                <h3 class="font-medium">车辆前摄像头</h3>
+                            </div>
+                            <span class="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full">主设备</span>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-3">IP: 192.168.1.101 · 通道1</div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span>状态: <span class="text-green-500">运行中</span></span>
+                            <span>最后活跃: 2分钟前</span>
+                        </div>
+                    </div>
+                    
+                    <div id="doorCameraCard" class="device-card p-4 rounded-lg bg-gray-800/50 cursor-pointer border-l-4 border-green-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <span class="device-status device-online"></span>
+                                <h3 class="font-medium">车门监控</h3>
+                            </div>
+                            <span class="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full">辅助设备</span>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-3">IP: 192.168.1.102 · 通道2</div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span>状态: <span class="text-green-500">运行中</span></span>
+                            <span>最后活跃: 5分钟前</span>
+                        </div>
+                    </div>
+                    
+                    <div id="insideCameraCard" class="device-card p-4 rounded-lg bg-gray-800/50 cursor-pointer border-l-4 border-purple-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <span class="device-status device-online"></span>
+                                <h3 class="font-medium">车内监控</h3>
+                            </div>
+                            <span class="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full">辅助设备</span>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-3">IP: 192.168.1.103 · 通道3</div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span>状态: <span class="text-green-500">运行中</span></span>
+                            <span>最后活跃: 8分钟前</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 text-center">
+                        <button id="addDeviceBtn" class="w-full py-2 px-4 rounded-lg border-2 border-dashed border-gray-600 hover:border-gray-500 text-gray-400 hover:text-gray-300">
+                            <span class="mr-2">➕</span> 添加新设备
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="font-medium mb-3">设备状态概览</h3>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="p-3 rounded-lg bg-gray-800/50">
+                            <div class="text-2xl font-bold">3</div>
+                            <div class="text-sm text-gray-400">在线设备</div>
+                        </div>
+                        <div class="p-3 rounded-lg bg-gray-800/50">
+                            <div class="text-2xl font-bold">0</div>
+                            <div class="text-sm text-gray-400">离线设备</div>
+                        </div>
+                        <div class="p-3 rounded-lg bg-gray-800/50">
+                            <div class="text-2xl font-bold">0</div>
+                            <div class="text-sm text-gray-400">异常设备</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 设备详情 -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="main-container rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-medium">设备详情</h2>
+                        <div class="flex space-x-2">
+                            <button id="editBtn" class="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700">
+                                <span class="mr-1">✏️</span> 编辑
+                            </button>
+                            <button id="restartBtn" class="px-3 py-1 text-sm rounded bg-yellow-600 hover:bg-yellow-700">
+                                <span class="mr-1">🔄</span> 重启
+                            </button>
+                            <button id="removeBtn" class="px-3 py-1 text-sm rounded bg-red-600 hover:bg-red-700">
+                                <span class="mr-1">🗑️</span> 移除
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-medium mb-3 border-b border-gray-700 pb-2">基本信息</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">设备名称</label>
+                                    <div class="font-medium">车辆前摄像头</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">设备类型</label>
+                                    <div class="font-medium">车载摄像头 (1080P)</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">设备序列号</label>
+                                    <div class="font-medium">CAM-2025-001</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">IP地址</label>
+                                    <div class="font-medium">192.168.1.101</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">MAC地址</label>
+                                    <div class="font-medium">00:1A:2B:3C:4D:5E</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium mb-3 border-b border-gray-700 pb-2">状态信息</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">运行状态</label>
+                                    <div class="flex items-center">
+                                        <span class="device-status device-online mr-2"></span>
+                                        <span class="font-medium text-green-500">在线</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">运行时间</label>
+                                    <div class="font-medium">3天 7小时 25分钟</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">CPU使用率</label>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 45%"></div>
+                                    </div>
+                                    <div class="text-sm text-right text-gray-400">45%</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">内存使用</label>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 68%"></div>
+                                    </div>
+                                    <div class="text-sm text-right text-gray-400">68% (1.7GB/2.5GB)</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">网络状态</label>
+                                    <div class="font-medium">稳定 (2.4 Mbps)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 设备参数配置 -->
+                <div class="main-container rounded-xl p-6">
+                    <h2 class="text-xl font-medium mb-4">设备参数配置</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-medium mb-3 border-b border-gray-700 pb-2">视频参数</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">分辨率</label>
+                                    <select class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none">
+                                        <option>1920x1080</option>
+                                        <option>1280x720</option>
+                                        <option>640x480</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">帧率</label>
+                                    <select class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none">
+                                        <option>30 FPS</option>
+                                        <option>25 FPS</option>
+                                        <option>15 FPS</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">码率</label>
+                                    <select class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none">
+                                        <option>高 (8 Mbps)</option>
+                                        <option>中 (4 Mbps)</option>
+                                        <option>低 (2 Mbps)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium mb-3 border-b border-gray-700 pb-2">高级设置</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">夜视模式</label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">移动侦测</label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">自动对焦</label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-end">
+                        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg">
+                            保存设置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 50, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1.5, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 退出登录
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = 'index.html';
+            });
+
+            // 设备卡片点击事件
+            const deviceCards = [
+                document.getElementById('frontCameraCard'),
+                document.getElementById('doorCameraCard'),
+                document.getElementById('insideCameraCard')
+            ];
+
+            deviceCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 移除所有卡片的选中状态
+                    deviceCards.forEach(c => {
+                        c.classList.remove('border-blue-500', 'border-green-500', 'border-purple-500');
+                        c.classList.add('bg-gray-800/50');
+                    });
+                    
+                    // 添加当前卡片的选中状态
+                    this.classList.remove('bg-gray-800/50');
+                    this.classList.add('bg-gray-700/50');
+                    
+                    // 根据设备类型设置边框颜色
+                    if(this.id.includes('front')) {
+                        this.classList.add('border-blue-500');
+                    } else if(this.id.includes('door')) {
+                        this.classList.add('border-green-500');
+                    } else {
+                        this.classList.add('border-purple-500');
+                    }
+                    
+                    // 更新设备详情区域
+                    updateDeviceDetails(this.id);
+                });
+            });
+
+            // 模拟更新设备详情
+            function updateDeviceDetails(deviceId) {
+                console.log('正在加载设备: ' + deviceId);
+                // 实际应用中这里应该是AJAX请求获取设备详情
+            }
+
+            // 添加设备按钮
+            document.getElementById('addDeviceBtn').addEventListener('click', function() {
+                alert('正在开发中：添加新设备功能');
+            });
+
+            // 设备操作按钮
+            document.getElementById('editBtn').addEventListener('click', function() {
+                alert('正在开发中：编辑设备功能');
+            });
+
+            document.getElementById('restartBtn').addEventListener('click', function() {
+                if(confirm('确定要重启此设备吗？')) {
+                    alert('设备重启命令已发送');
+                }
+            });
+
+            document.getElementById('removeBtn').addEventListener('click', function() {
+                if(confirm('确定要从系统中移除此设备吗？')) {
+                    alert('设备移除命令已发送');
+                }
+            });
+
+            // 刷新按钮
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                this.classList.add('animate-spin');
+                setTimeout(() => {
+                    this.classList.remove('animate-spin');
+                    alert('设备状态已刷新');
+                }, 1000);
+            });
+
+            // 默认选中第一个设备
+            deviceCards[0].click();
+        });
+    </script>
+</body>
+</html>
