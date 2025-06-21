@@ -1,0 +1,732 @@
+
+<!-- management_monitoring_system/frontend/stream-processing.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>流式处理引擎 | 管理与监控信息共享系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass:hover {
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+        
+        .pipeline-node {
+            transition: all 0.3s ease;
+        }
+        
+        .pipeline-node:hover {
+            transform: translateY(-5px);
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #10B981;
+            box-shadow: 0 0 10px #10B981;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-idle {
+            background-color: #F59E0B;
+        }
+        
+        .status-error {
+            background-color: #EF4444;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            border-left: 4px solid #10B981;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #10B981, #3B82F6);
+            transition: width 0.3s ease;
+        }
+        
+        .pipeline-connector {
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            position: relative;
+        }
+        
+        .pipeline-connector::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.5);
+        }
+        
+        .data-flow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .data-flow::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: flow 2s linear infinite;
+        }
+        
+        @keyframes flow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .counter-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 0.7rem;
+        }
+        
+        .refresh-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 侧边栏 -->
+            <div class="lg:w-1/5">
+                <div class="glass p-5 mb-6">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                        <h1 class="text-white text-xl font-bold">管理与监控信息共享系统</h1>
+                    </div>
+                    
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="dashboard.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>控制面板</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="data-collection.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-database mr-3"></i>
+                                <span>数据采集</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="stream-processing.html" class="nav-item active flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-stream mr-3"></i>
+                                <span>流式处理</span>
+                                <span class="bg-green-500 text-xs font-bold px-2 py-1 rounded-full ml-auto">活跃</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="analysis-center.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-brain mr-3"></i>
+                                <span>智能分析</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="export.html" class="nav-item flex items-center text-white p-3 rounded-md">
+                                <i class="fas fa-file-export mr-3"></i>
+                                <span>数据导出</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass p-5">
+                    <h3 class="text-white text-lg font-bold mb-4">用户信息</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-white font-medium" id="username-display">admin</p>
+                            <p class="text-white text-opacity-70 text-sm">系统管理员</p>
+                        </div>
+                    </div>
+                    <hr class="border-white border-opacity-20 my-4">
+                    <button id="logout-btn" class="w-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-2 px-4 rounded-lg transition duration-300">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="lg:w-4/5">
+                <div class="glass p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-white text-2xl font-bold">流式处理引擎</h2>
+                            <p class="text-white text-opacity-80">实时数据处理流水线</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white bg-opacity-10 rounded-lg px-3 py-2 text-white">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span id="current-date">2025-05-06</span>
+                            </div>
+                            <button id="refresh-all" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition duration-300">
+                                <i class="fas fa-sync-alt mr-2 refresh-icon" id="refresh-icon"></i> 刷新状态
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 处理流水线 -->
+                    <div class="mb-8">
+                        <h3 class="text-white text-xl font-bold mb-4">数据处理流水线</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <!-- 数据采集节点 -->
+                            <div class="glass pipeline-node p-4 text-center">
+                                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-database text-white text-2xl"></i>
+                                </div>
+                                <h4 class="text-white font-bold mb-1">数据采集</h4>
+                                <div class="flex items-center justify-center text-white mb-2">
+                                    <span class="status-indicator status-active"></span>
+                                    <span class="text-sm">运行中</span>
+                                </div>
+                                <div class="text-white text-sm">
+                                    <div class="mb-1">吞吐量: <span class="font-bold" id="ingest-rate">1,245</span> 条/秒</div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-center">
+                                <div class="pipeline-connector w-full data-flow"></div>
+                            </div>
+                            
+                            <!-- 数据清洗节点 -->
+                            <div class="glass pipeline-node p-4 text-center">
+                                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-broom text-white text-2xl"></i>
+                                </div>
+                                <h4 class="text-white font-bold mb-1">数据清洗</h4>
+                                <div class="flex items-center justify-center text-white mb-2">
+                                    <span class="status-indicator status-active"></span>
+                                    <span class="text-sm">运行中</span>
+                                </div>
+                                <div class="text-white text-sm">
+                                    <div class="mb-1">过滤率: <span class="font-bold" id="filter-rate">12%</span></div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 78%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-center">
+                                <div class="pipeline-connector w-full data-flow"></div>
+                            </div>
+                            
+                            <!-- 数据转换节点 -->
+                            <div class="glass pipeline-node p-4 text-center">
+                                <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-exchange-alt text-white text-2xl"></i>
+                                </div>
+                                <h4 class="text-white font-bold mb-1">数据转换</h4>
+                                <div class="flex items-center justify-center text-white mb-2">
+                                    <span class="status-indicator status-active"></span>
+                                    <span class="text-sm">运行中</span>
+                                </div>
+                                <div class="text-white text-sm">
+                                    <div class="mb-1">转换率: <span class="font-bold" id="transform-rate">98%</span></div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 92%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-center">
+                                <div class="pipeline-connector w-full data-flow"></div>
+                            </div>
+                            
+                            <!-- 数据分析节点 -->
+                            <div class="glass pipeline-node p-4 text-center">
+                                <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-chart-bar text-white text-2xl"></i>
+                                </div>
+                                <h4 class="text-white font-bold mb-1">实时分析</h4>
+                                <div class="flex items-center justify-center text-white mb-2">
+                                    <span class="status-indicator status-active"></span>
+                                    <span class="text-sm">运行中</span>
+                                </div>
+                                <div class="text-white text-sm">
+                                    <div class="mb-1">延迟: <span class="font-bold" id="analysis-latency">45</span> 毫秒</div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 88%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-center">
+                                <div class="pipeline-connector w-full data-flow"></div>
+                            </div>
+                            
+                            <!-- 数据存储节点 -->
+                            <div class="glass pipeline-node p-4 text-center">
+                                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-save text-white text-2xl"></i>
+                                </div>
+                                <h4 class="text-white font-bold mb-1">数据存储</h4>
+                                <div class="flex items-center justify-center text-white mb-2">
+                                    <span class="status-indicator status-active"></span>
+                                    <span class="text-sm">运行中</span>
+                                </div>
+                                <div class="text-white text-sm">
+                                    <div class="mb-1">写入速度: <span class="font-bold" id="storage-rate">945</span> 条/秒</div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 76%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 处理统计 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="glass p-4">
+                            <h3 class="text-white text-lg font-bold mb-4">处理统计</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-white mb-1">
+                                        <span>总处理数据</span>
+                                        <span class="font-bold" id="total-processed">1,245,789</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white mb-1">
+                                        <span>今日处理量</span>
+                                        <span class="font-bold" id="today-processed">24,578</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white mb-1">
+                                        <span>异常数据</span>
+                                        <span class="font-bold text-red-400" id="error-count">1,245</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar bg-red-500" style="width: 5%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4">
+                            <h3 class="text-white text-lg font-bold mb-4">资源使用</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-white mb-1">
+                                        <span>CPU使用率</span>
+                                        <span class="font-bold" id="cpu-usage">42%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white mb-1">
+                                        <span>内存使用</span>
+                                        <span class="font-bold" id="memory-usage">68%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 68%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-white mb-1">
+                                        <span>网络带宽</span>
+                                        <span class="font-bold" id="network-usage">51%</span>
+                                    </div>
+                                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                        <div class="progress-bar" style="width: 51%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4">
+                            <h3 class="text-white text-lg font-bold mb-4">系统信息</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-white">
+                                    <span>运行时间</span>
+                                    <span class="font-bold" id="uptime">7天 13小时 22分钟</span>
+                                </div>
+                                <div class="flex justify-between text-white">
+                                    <span>最后重启</span>
+                                    <span class="font-bold" id="last-restart">2025-05-01 03:15</span>
+                                </div>
+                                <div class="flex justify-between text-white">
+                                    <span>版本</span>
+                                    <span class="font-bold">v2.5.1</span>
+                                </div>
+                                <div class="flex justify-between text-white">
+                                    <span>集群节点</span>
+                                    <span class="font-bold" id="cluster-nodes">3</span>
+                                </div>
+                                <div class="flex justify-between text-white">
+                                    <span>分区数量</span>
+                                    <span class="font-bold" id="partitions">12</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 实时日志 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white text-xl font-bold">处理日志</h3>
+                            <div class="flex space-x-2">
+                                <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300" id="pause-logs">
+                                    <i class="fas fa-pause mr-1"></i> 暂停
+                                </button>
+                                <button class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-1 px-3 rounded-lg transition duration-300" id="clear-logs">
+                                    <i class="fas fa-eraser mr-1"></i> 清空
+                                </button>
+                            </div>
+                        </div>
+                        <div class="glass p-4 max-h-64 overflow-y-auto" id="log-container">
+                            <div class="text-white text-opacity-70 text-center py-4">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> 正在加载处理日志...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 设置用户名
+            const userNameDisplay = document.getElementById('username-display');
+            if (userNameDisplay) {
+                userNameDisplay.textContent = localStorage.getItem('username') || 'admin';
+            }
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 初始化日期显示
+            updateDateTime();
+            
+            // 初始化日志
+            initLogs();
+            
+            // 定时更新数据
+            setInterval(updatePipelineStats, 3000);
+            setInterval(addRandomLog, 2000);
+            setInterval(updateDateTime, 1000);
+            
+            // 绑定事件处理
+            document.getElementById('refresh-all').addEventListener('click', refreshAllData);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            document.getElementById('pause-logs').addEventListener('click', toggleLogs);
+            document.getElementById('clear-logs').addEventListener('click', clearLogs);
+        });
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particlesCount = 30;
+            
+            if (!particlesContainer) return;
+            
+            for (let i = 0; i < particlesCount; i++) {
+                const size = Math.random() * 4 + 1;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                
+                // 随机动画
+                const animationDuration = Math.random() * 20 + 10;
+                const animationDelay = Math.random() * 5;
+                
+                particle.style.animation = `float ${animationDuration}s ease-in-out infinite`;
+                particle.style.animationDelay = `${animationDelay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 更新日期和时间
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            
+            const dateDisplay = document.getElementById('current-date');
+            if (dateDisplay) {
+                dateDisplay.textContent = dateStr;
+            }
+        }
+        
+        // 更新流水线统计
+        function updatePipelineStats() {
+            updateCardValue('ingest-rate', getRandomInt(1200, 1300).toLocaleString());
+            updateCardValue('filter-rate', getRandomInt(10, 15) + '%');
+            updateCardValue('transform-rate', getRandomInt(95, 99) + '%');
+            updateCardValue('analysis-latency', getRandomInt(40, 60));
+            updateCardValue('storage-rate', getRandomInt(900, 1000).toLocaleString());
+            
+            updateCardValue('total-processed', (getRandomInt(1245000, 1246000)).toLocaleString());
+            updateCardValue('today-processed', getRandomInt(24000, 25000).toLocaleString());
+            updateCardValue('error-count', getRandomInt(1200, 1300).toLocaleString());
+            
+            updateProgressBar('cpu-usage', getRandomInt(35, 50));
+            updateProgressBar('memory-usage', getRandomInt(60, 75));
+            updateProgressBar('network-usage', getRandomInt(45, 60));
+        }
+        
+        // 初始化日志
+        let isLogsPaused = false;
+        let logInterval;
+        
+        function initLogs() {
+            const logContainer = document.getElementById('log-container');
+            if (!logContainer) return;
+            
+            logContainer.innerHTML = '';
+            
+            // 添加初始日志
+            addLog('系统', '流式处理引擎已启动', 'bg-blue-600');
+            addLog('系统', '正在初始化数据处理流水线...', 'bg-blue-600');
+            addLog('系统', '所有处理节点已连接，开始接收数据', 'bg-green-600');
+        }
+        
+        function addRandomLog() {
+            if (isLogsPaused) return;
+            
+            const logTypes = ['数据采集', '数据清洗', '数据转换', '实时分析', '数据存储'];
+            const logLevels = ['info', 'warning', 'error'];
+            const logMessages = [
+                '成功处理了 {count} 条数据记录',
+                '检测到异常数据格式，已过滤 {count} 条记录',
+                '数据转换完成，耗时 {ms} 毫秒',
+                '分析引擎处理延迟增加至 {ms} 毫秒',
+                '存储节点写入速度下降',
+                '集群节点负载均衡调整',
+                '分区 {id} 重新分配完成'
+            ];
+            
+            const type = logTypes[Math.floor(Math.random() * logTypes.length)];
+            const level = logLevels[Math.floor(Math.random() * logLevels.length)];
+            let message = logMessages[Math.floor(Math.random() * logMessages.length)];
+            
+            // 替换占位符
+            message = message.replace('{count}', getRandomInt(10, 1000))
+                           .replace('{ms}', getRandomInt(20, 200))
+                           .replace('{id}', getRandomInt(1, 12));
+            
+            let className = '';
+            if (level === 'warning') className = 'bg-yellow-600';
+            if (level === 'error') className = 'bg-red-600';
+            
+            addLog(type, message, className);
+        }
+        
+        function addLog(source, message, className) {
+            const logContainer = document.getElementById('log-container');
+            if (!logContainer) return;
+            
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeStr = `${hours}:${minutes}:${seconds}`;
+            
+            const logElement = document.createElement('div');
+            logElement.classList.add('mb-2', 'text-white', 'text-sm', 'flex', 'items-start');
+            
+            if (className) {
+                logElement.classList.add(className, 'bg-opacity-20', 'p-2', 'rounded');
+            }
+            
+            logElement.innerHTML = `
+                <span class="text-xs text-white text-opacity-70 mr-2">${timeStr}</span>
+                <span class="font-bold mr-2">[${source}]</span>
+                <span>${message}</span>
+            `;
+            
+            logContainer.appendChild(logElement);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // 限制日志数量
+            if (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.children[0]);
+            }
+        }
+        
+        function toggleLogs() {
+            const button = document.getElementById('pause-logs');
+            isLogsPaused = !isLogsPaused;
+            
+            if (isLogsPaused) {
+                button.innerHTML = '<i class="fas fa-play mr-1"></i> 继续';
+                button.classList.add('bg-green-600');
+                button.classList.remove('bg-white', 'bg-opacity-10');
+                addLog('系统', '日志更新已暂停', 'bg-yellow-600');
+            } else {
+                button.innerHTML = '<i class="fas fa-pause mr-1"></i> 暂停';
+                button.classList.remove('bg-green-600');
+                button.classList.add('bg-white', 'bg-opacity-10');
+                addLog('系统', '日志更新已恢复', 'bg-green-600');
+            }
+        }
+        
+        function clearLogs() {
+            const logContainer = document.getElementById('log-container');
+            if (logContainer) {
+                logContainer.innerHTML = '';
+                addLog('系统', '日志已清空', 'bg-blue-600');
+            }
+        }
+        
+        // 刷新所有数据
+        function refreshAllData() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            refreshIcon.classList.add('spinning');
+            
+            // 模拟加载
+            setTimeout(() => {
+                updatePipelineStats();
+                addLog('系统', '手动刷新完成，所有数据已更新', 'bg-green-600');
+                
+                refreshIcon.classList.remove('spinning');
+            }, 1000);
+        }
+        
+        // 辅助函数：更新卡片值
+        function updateCardValue(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+        
+        // 辅助函数：更新进度条
+        function updateProgressBar(id, percentage) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = `${percentage}%`;
+                const progressBar = element.parentNode.nextElementSibling.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = `${percentage}%`;
+                }
+            }
+        }
+        
+        // 辅助函数：获取指定范围的随机整数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
