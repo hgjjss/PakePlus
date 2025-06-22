@@ -1,0 +1,989 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/logs.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>交易日志 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .log-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .status-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-processing {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        .log-duration {
+            font-family: monospace;
+        }
+        /* 添加日期范围快捷选择样式 */
+        .date-quickpick {
+            display: inline-flex;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 0.5rem;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+        }
+        .date-quickpick:hover, .date-quickpick.active {
+            background-color: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        /* 增强导出按钮样式 */
+        .btn-export {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-export:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        /* 微交互动效 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        .ripple:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">交易日志</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">交易日志查询</h1>
+                <div class="flex space-x-3">
+                    <div class="dropdown relative">
+                        <button id="exportDropdown" class="btn-export ripple px-4 py-2 rounded-lg flex items-center space-x-2">
+                            <i class="fas fa-file-export"></i>
+                            <span>导出</span>
+                            <i class="fas fa-chevron-down text-xs ml-1"></i>
+                        </button>
+                        <div id="exportOptions" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10">
+                            <div class="py-1">
+                                <button id="exportCSV" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                    <i class="fas fa-file-csv mr-2"></i>导出为CSV
+                                </button>
+                                <button id="exportExcel" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                    <i class="fas fa-file-excel mr-2"></i>导出为Excel
+                                </button>
+                                <button id="exportPDF" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                    <i class="fas fa-file-pdf mr-2"></i>导出为PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="refreshBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 action-btn ripple">
+                        <i class="fas fa-sync-alt mr-2"></i>刷新
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">今日日志</p>
+                            <p class="text-2xl font-bold text-gray-800">1,245</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600">
+                        <i class="fas fa-arrow-up mr-1"></i>12.5% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">成功交易</p>
+                            <p class="text-2xl font-bold text-gray-800">1,180</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">
+                        <i class="fas fa-arrow-up mr-1"></i>15.2% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">失败交易</p>
+                            <p class="text-2xl font-bold text-gray-800">65</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-red-600">
+                        <i class="fas fa-arrow-down mr-1"></i>5.7% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">平均响应</p>
+                            <p class="text-2xl font-bold text-gray-800 log-duration">328ms</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-stopwatch text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-purple-600">
+                        <i class="fas fa-arrow-down mr-1"></i>8.3% 较昨日
+                    </div>
+                </div>
+            </div>
+
+            <!-- 过滤和搜索区域 -->
+            <div class="bg-white rounded-xl p-4 mb-6 card">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <!-- 时间筛选 -->
+                    <div class="mb-4 md:mb-0">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">时间范围</label>
+                        <div class="flex flex-wrap gap-2">
+                            <div class="date-quickpick active" data-range="today">今日</div>
+                            <div class="date-quickpick" data-range="yesterday">昨日</div>
+                            <div class="date-quickpick" data-range="week">本周</div>
+                            <div class="date-quickpick" data-range="month">本月</div>
+                            <div class="date-quickpick" data-range="custom">自定义</div>
+                        </div>
+                        <div id="customDateRange" class="hidden mt-3 flex items-center space-x-2">
+                            <input type="datetime-local" class="filter-input border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span>至</span>
+                            <input type="datetime-local" class="filter-input border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- 搜索和状态过滤 -->
+                    <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="搜索交易号/用户..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="moduleFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">全部模块</option>
+                                <option value="registration">参保登记</option>
+                                <option value="payment">缴费管理</option>
+                                <option value="exception">异常处理</option>
+                                <option value="finance">财务对账</option>
+                            </select>
+                            <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">全部状态</option>
+                                <option value="success">成功</option>
+                                <option value="error">失败</option>
+                                <option value="warning">警告</option>
+                                <option value="processing">处理中</option>
+                            </select>
+                            <button id="searchBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 action-btn ripple">
+                                <i class="fas fa-search mr-2"></i>查询
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 高级搜索选项 -->
+                <div class="mt-4">
+                    <button id="advancedSearchToggle" class="text-blue-500 hover:text-blue-700 text-sm flex items-center">
+                        <i class="fas fa-sliders-h mr-1"></i> 高级选项
+                        <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                    </button>
+                    <div id="advancedSearchOptions" class="hidden mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="userFilter" class="block text-sm font-medium text-gray-700 mb-1">操作用户</label>
+                            <select id="userFilter" class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <option value="">全部用户</option>
+                                <option value="admin">管理员</option>
+                                <option value="operator">操作员</option>
+                                <option value="auditor">审计员</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ipFilter" class="block text-sm font-medium text-gray-700 mb-1">IP地址</label>
+                            <input type="text" id="ipFilter" placeholder="输入IP地址" class="filter-input border border-gray-300 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label for="responseTimeFilter" class="block text-sm font-medium text-gray-700 mb-1">响应时间</label>
+                            <div class="flex items-center space-x-2">
+                                <select id="responseTimeFilter" class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="">不限</option>
+                                    <option value="fast">快速 (< 200ms)</option>
+                                    <option value="normal">正常 (200ms-500ms)</option>
+                                    <option value="slow">缓慢 (> 500ms)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 交易日志表格 -->
+            <div class="bg-white rounded-xl overflow-hidden card">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <span>交易号</span>
+                                        <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <span>模块</span>
+                                        <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <span>用户</span>
+                                        <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <span>状态</span>
+                                        <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <span>耗时</span>
+                                        <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <span>时间</span>
+                                        <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="logTableBody">
+                            <!-- 示例数据行 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612001</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">参保登记</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=1" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">张三</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">新增参保</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="log-status status-success">成功</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 log-duration">328ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 09:15:23</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612002</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">缴费管理</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=2" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">李四</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">缴费</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="log-status status-processing">处理中</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 log-duration">456ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 10:23:45</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612003</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">异常处理</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=3" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">王五</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">异常处理</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="log-status status-error">失败</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 log-duration">789ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 11:42:18</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612004</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">财务对账</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=4" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">赵六</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">对账操作</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="log-status status-warning">警告</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 log-duration">542ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 14:35:06</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            上一页
+                        </a>
+                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            下一页
+                        </a>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">1,245</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">上一页</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    3
+                                </a>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    ...
+                                </span>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    25
+                                </a>
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">下一页</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 批量操作区 -->
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="batchExportBtn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 action-btn ripple">
+                    <i class="fas fa-file-export mr-2"></i>批量导出
+                </button>
+                <button id="saveQueryBtn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 action-btn ripple">
+                    <i class="fas fa-save mr-2"></i>保存查询条件
+                </button>
+                <button id="scheduleReportBtn" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 action-btn ripple">
+                    <i class="fas fa-calendar-alt mr-2"></i>定时报表
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日志详情模态框 -->
+    <div id="logDetailModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">交易日志详情</h3>
+                                <span id="detailStatus" class="log-status status-success">成功</span>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易号</p>
+                                        <p class="text-sm font-medium text-gray-900">TX20250612001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">模块</p>
+                                        <p class="text-sm font-medium text-gray-900">参保登记</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">操作</p>
+                                        <p class="text-sm font-medium text-gray-900">新增参保</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">用户</p>
+                                        <p class="text-sm font-medium text-gray-900">张三 (admin)</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">耗时</p>
+                                        <p class="text-sm font-medium text-gray-900 log-duration">328ms</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">时间</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12 09:15:23</p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">请求参数</h4>
+                                    <div class="bg-gray-50 p-3 rounded-md">
+                                        <code class="text-xs text-gray-800">
+                                            {<br>
+                                            &nbsp;&nbsp;"name": "张三",<br>
+                                            &nbsp;&nbsp;"idNumber": "320************018",<br>
+                                            &nbsp;&nbsp;"insuranceType": "城镇职工养老保险",<br>
+                                            &nbsp;&nbsp;"address": "江苏省南京市玄武区"<br>
+                                            }
+                                        </code>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">响应结果</h4>
+                                    <div class="bg-gray-50 p-3 rounded-md">
+                                        <code class="text-xs text-gray-800">
+                                            {<br>
+                                            &nbsp;&nbsp;"code": 200,<br>
+                                            &nbsp;&nbsp;"message": "参保登记成功",<br>
+                                            &nbsp;&nbsp;"data": {<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"registrationId": "REG20250612001",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"nextStep": "缴费"<br>
+                                            &nbsp;&nbsp;}<br>
+                                            }
+                                        </code>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">日志追踪</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.123 - 开始处理参保登记请求</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.234 - 验证用户身份信息成功</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-database text-purple-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.345 - 保存参保信息到数据库</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.451 - 参保登记处理完成</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ripple">
+                        导出日志
+                    </button>
+                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        复制JSON
+                    </button>
+                    <button type="button" id="closeDetailModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存查询条件模态框 -->
+    <div id="saveQueryModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">保存查询条件</h3>
+                            <form class="space-y-4">
+                                <div>
+                                    <label for="queryName" class="block text-sm font-medium text-gray-700">查询名称</label>
+                                    <input type="text" id="queryName" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="例如: 本周成功交易">
+                                </div>
+                                <div>
+                                    <label for="queryDesc" class="block text-sm font-medium text-gray-700">描述</label>
+                                    <textarea id="queryDesc" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="请输入描述"></textarea>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="shareQuery" name="shareQuery" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="shareQuery" class="ml-2 block text-sm text-gray-700">与其他用户共享此查询</label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmSaveQuery" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ripple">
+                        保存
+                    </button>
+                    <button type="button" id="cancelSaveQuery" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 日期快捷选择
+            const dateQuickpicks = document.querySelectorAll('.date-quickpick');
+            const customDateRange = document.getElementById('customDateRange');
+            
+            dateQuickpicks.forEach(pick => {
+                pick.addEventListener('click', function() {
+                    // 移除所有active状态
+                    dateQuickpicks.forEach(p => p.classList.remove('active'));
+                    // 添加当前active状态
+                    this.classList.add('active');
+                    // 控制自定义日期范围显示
+                    if (this.dataset.range === 'custom') {
+                        customDateRange.classList.remove('hidden');
+                    } else {
+                        customDateRange.classList.add('hidden');
+                    }
+                });
+            });
+
+            // 高级搜索选项
+            const advancedSearchToggle = document.getElementById('advancedSearchToggle');
+            const advancedSearchOptions = document.getElementById('advancedSearchOptions');
+            
+            advancedSearchToggle.addEventListener('click', function() {
+                advancedSearchOptions.classList.toggle('hidden');
+                const icon = this.querySelector('.fa-chevron-down');
+                if (advancedSearchOptions.classList.contains('hidden')) {
+                    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                } else {
+                    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                }
+            });
+
+            // 导出下拉菜单
+            const exportDropdown = document.getElementById('exportDropdown');
+            const exportOptions = document.getElementById('exportOptions');
+            
+            exportDropdown.addEventListener('click', function() {
+                exportOptions.classList.toggle('hidden');
+            });
+            
+            // 点击外部关闭导出下拉菜单
+            document.addEventListener('click', function(event) {
+                if (!exportDropdown.contains(event.target) && !exportOptions.contains(event.target)) {
+                    exportOptions.classList.add('hidden');
+                }
+            });
+
+            // 导出选项
+            const exportCSV = document.getElementById('exportCSV');
+            const exportExcel = document.getElementById('exportExcel');
+            const exportPDF = document.getElementById('exportPDF');
+            
+            exportCSV.addEventListener('click', function() {
+                exportLogsHandler('csv');
+                exportOptions.classList.add('hidden');
+            });
+            
+            exportExcel.addEventListener('click', function() {
+                exportLogsHandler('excel');
+                exportOptions.classList.add('hidden');
+            });
+            
+            exportPDF.addEventListener('click', function() {
+                exportLogsHandler('pdf');
+                exportOptions.classList.add('hidden');
+            });
+
+            function exportLogsHandler(format) {
+                // 模拟导出数据
+                const data = [
+                    { txNo: 'TX20250612001', module: '参保登记', user: '张三', action: '新增参保', status: '成功', duration: '328ms', time: '2025-06-12 09:15:23' },
+                    { txNo: 'TX20250612002', module: '缴费管理', user: '李四', action: '缴费', status: '处理中', duration: '456ms', time: '2025-06-12 10:23:45' },
+                    { txNo: 'TX20250612003', module: '异常处理', user: '王五', action: '异常处理', status: '失败', duration: '789ms', time: '2025-06-12 11:42:18' }
+                ];
+                
+                // 调用全局导出方法
+                if (window.exportData) {
+                    window.exportData(data, format, '交易日志');
+                } else {
+                    alert(`导出${format.toUpperCase()}功能正在开发中`);
+                }
+            }
+
+            // 刷新按钮
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.addEventListener('click', function() {
+                // 模拟刷新数据
+                console.log('刷新日志数据');
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>刷新中';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>刷新';
+                    alert('日志数据已刷新');
+                }, 1000);
+            });
+
+            // 搜索按钮
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.addEventListener('click', function() {
+                // 获取所有筛选条件
+                const searchText = document.getElementById('searchInput').value;
+                const moduleValue = document.getElementById('moduleFilter').value;
+                const statusValue = document.getElementById('statusFilter').value;
+                const activeQuickpick = document.querySelector('.date-quickpick.active');
+                
+                // 高级筛选条件
+                const userValue = document.getElementById('userFilter') ? document.getElementById('userFilter').value : '';
+                const ipValue = document.getElementById('ipFilter') ? document.getElementById('ipFilter').value : '';
+                const responseTimeValue = document.getElementById('responseTimeFilter') ? document.getElementById('responseTimeFilter').value : '';
+                
+                // 如果是自定义日期范围
+                let startDate = null;
+                let endDate = null;
+                if (activeQuickpick && activeQuickpick.dataset.range === 'custom') {
+                    const dateInputs = document.querySelectorAll('#customDateRange input');
+                    if (dateInputs.length >= 2) {
+                        startDate = dateInputs[0].value;
+                        endDate = dateInputs[1].value;
+                    }
+                }
+                
+                // 在实际应用中，这里会调用API获取符合条件的日志
+                console.log('执行搜索，条件:', {
+                    searchText,
+                    module: moduleValue,
+                    status: statusValue,
+                    dateRange: activeQuickpick ? activeQuickpick.dataset.range : '',
+                    startDate,
+                    endDate,
+                    user: userValue,
+                    ip: ipValue,
+                    responseTime: responseTimeValue
+                });
+                
+                // 模拟加载效果
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>搜索中';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-search mr-2"></i>查询';
+                    alert('查询结果已更新');
+                }, 800);
+            });
+
+            // 日志详情模态框
+            const logDetailModal = document.getElementById('logDetailModal');
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            
+            // 点击表格中的查看按钮打开模态框
+            document.querySelectorAll('#logTableBody .fa-eye').forEach(eyeIcon => {
+                eyeIcon.addEventListener('click', function() {
+                    logDetailModal.classList.remove('hidden');
+                });
+            });
+            
+            closeDetailModal.addEventListener('click', function() {
+                logDetailModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === logDetailModal) {
+                    logDetailModal.classList.add('hidden');
+                }
+            });
+
+            // 保存查询条件
+            const saveQueryBtn = document.getElementById('saveQueryBtn');
+            const saveQueryModal = document.getElementById('saveQueryModal');
+            const confirmSaveQuery = document.getElementById('confirmSaveQuery');
+            const cancelSaveQuery = document.getElementById('cancelSaveQuery');
+            
+            saveQueryBtn.addEventListener('click', function() {
+                saveQueryModal.classList.remove('hidden');
+            });
+            
+            confirmSaveQuery.addEventListener('click', function() {
+                // 获取查询名称
+                const queryName = document.getElementById('queryName').value;
+                if (!queryName) {
+                    alert('请输入查询名称');
+                    return;
+                }
+                
+                // 模拟保存操作
+                console.log('保存查询条件:', {
+                    name: queryName,
+                    desc: document.getElementById('queryDesc').value,
+                    shared: document.getElementById('shareQuery').checked
+                });
+                
+                saveQueryModal.classList.add('hidden');
+                alert('查询条件已保存');
+            });
+            
+            cancelSaveQuery.addEventListener('click', function() {
+                saveQueryModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === saveQueryModal) {
+                    saveQueryModal.classList.add('hidden');
+                }
+            });
+
+            // 批量导出和定时报表按钮
+            document.getElementById('batchExportBtn').addEventListener('click', function() {
+                alert('批量导出功能正在开发中');
+            });
+            
+            document.getElementById('scheduleReportBtn').addEventListener('click', function() {
+                alert('定时报表功能正在开发中');
+            });
+
+            // 排序功能
+            const sortHeaders = document.querySelectorAll('th [class*="fa-sort"]');
+            sortHeaders.forEach(header => {
+                header.parentElement.addEventListener('click', function() {
+                    // 当前列名
+                    const columnName = this.textContent.trim();
+                    // 模拟排序
+                    sortTable(columnName);
+                    
+                    // 更新排序图标
+                    sortHeaders.forEach(icon => {
+                        icon.className = 'fas fa-sort ml-1 text-gray-400';
+                    });
+                    const icon = this.querySelector('i');
+                    
+                    // 切换排序方向
+                    if (icon.classList.contains('fa-sort') || icon.classList.contains('fa-sort-down')) {
+                        icon.className = 'fas fa-sort-up ml-1 text-blue-500';
+                    } else {
+                        icon.className = 'fas fa-sort-down ml-1 text-blue-500';
+                    }
+                });
+            });
+
+            function sortTable(columnName) {
+                console.log(`按 ${columnName} 排序表格`);
+                // 在实际应用中，这里会对表格数据进行排序
+            }
+        });
+    </script>
+</body>
+</html>
