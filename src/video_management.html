@@ -1,0 +1,911 @@
+
+<!-- emergency_av_management_server/frontend/video_management.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 视音频资源管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/css/tempusdominus-bootstrap-4.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .video-thumbnail {
+            transition: all 0.3s ease;
+        }
+        .video-thumbnail:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+        }
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+        .timeline-item:after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 16px;
+            width: 2px;
+            height: calc(100% - 16px);
+            background: #e5e7eb;
+        }
+        .timeline-item:last-child:after {
+            display: none;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+                急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">视音频资源管理</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshVideoList()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 搜索和筛选区域 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
+                        <div class="relative">
+                            <input type="text" id="search-input" placeholder="搜索视频/音频..." 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <select id="type-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有类型</option>
+                            <option value="video">视频</option>
+                            <option value="audio">音频</option>
+                            <option value="image">图像</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="source-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有来源</option>
+                            <option value="ambulance">救护车</option>
+                            <option value="hospital">医院</option>
+                            <option value="first-aid">急救现场</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <div class="relative">
+                            <input type="text" id="start-date" placeholder="开始日期" 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <i class="far fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <input type="text" id="end-date" placeholder="结束日期" 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <i class="far fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="applyFilters()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-filter mr-2"></i>筛选
+                        </button>
+                        <button onclick="resetFilters()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            <i class="fas fa-redo mr-2"></i>重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 批量操作区域 -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex justify-between items-center">
+                <div class="flex items-center">
+                    <input type="checkbox" id="select-all" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="select-all" class="ml-2 text-sm text-gray-700">全选</label>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="batchDownload()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-download mr-2"></i>下载
+                    </button>
+                    <button onclick="batchDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                        <i class="fas fa-trash-alt mr-2"></i>删除
+                    </button>
+                    <button onclick="batchTag()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                        <i class="fas fa-tag mr-2"></i>标记
+                    </button>
+                    <button onclick="batchExport()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-file-export mr-2"></i>导出
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 视音频资源列表 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- 视频项1 -->
+                <div class="card bg-white rounded-xl overflow-hidden video-thumbnail">
+                    <div class="relative">
+                        <img src="https://picsum.photos/600/400?random=1" alt="视频缩略图" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white text-sm font-medium">00:02:45</span>
+                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">视频</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" class="absolute top-2 left-2 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">心脏复苏急救过程</h3>
+                                <p class="text-sm text-gray-500">2025-06-12 09:15:23</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">已归档</span>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-ambulance mr-1"></i>
+                            <span>救护车A</span>
+                            <i class="fas fa-map-marker-alt ml-3 mr-1"></i>
+                            <span>北京市朝阳区</span>
+                        </div>
+                        <div class="mt-3 flex justify-between">
+                            <button onclick="previewVideo('vid001')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                <i class="fas fa-play mr-1"></i>预览
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="downloadVideo('vid001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="editVideo('vid001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteVideo('vid001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 视频项2 -->
+                <div class="card bg-white rounded-xl overflow-hidden video-thumbnail">
+                    <div class="relative">
+                        <img src="https://picsum.photos/600/400?random=2" alt="视频缩略图" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white text-sm font-medium">00:01:30</span>
+                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">视频</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" class="absolute top-2 left-2 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">交通事故现场记录</h3>
+                                <p class="text-sm text-gray-500">2025-06-12 10:45:12</p>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">处理中</span>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-ambulance mr-1"></i>
+                            <span>救护车B</span>
+                            <i class="fas fa-map-marker-alt ml-3 mr-1"></i>
+                            <span>北京市海淀区</span>
+                        </div>
+                        <div class="mt-3 flex justify-between">
+                            <button onclick="previewVideo('vid002')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                <i class="fas fa-play mr-1"></i>预览
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="downloadVideo('vid002')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="editVideo('vid002')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteVideo('vid002')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 音频项1 -->
+                <div class="card bg-white rounded-xl overflow-hidden video-thumbnail">
+                    <div class="relative">
+                        <img src="https://picsum.photos/600/400?random=3" alt="音频封面" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white text-sm font-medium">00:05:12</span>
+                                <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded">音频</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" class="absolute top-2 left-2 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">急救医生通话记录</h3>
+                                <p class="text-sm text-gray-500">2025-06-12 08:30:45</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">已归档</span>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-hospital mr-1"></i>
+                            <span>北京协和医院</span>
+                            <i class="fas fa-map-marker-alt ml-3 mr-1"></i>
+                            <span>北京市东城区</span>
+                        </div>
+                        <div class="mt-3 flex justify-between">
+                            <button onclick="previewAudio('aud001')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                <i class="fas fa-play mr-1"></i>播放
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="downloadAudio('aud001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="editAudio('aud001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteAudio('aud001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 视频项3 -->
+                <div class="card bg-white rounded-xl overflow-hidden video-thumbnail">
+                    <div class="relative">
+                        <img src="https://picsum.photos/600/400?random=4" alt="视频缩略图" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white text-sm font-medium">00:03:18</span>
+                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">视频</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" class="absolute top-2 left-2 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">骨折固定操作演示</h3>
+                                <p class="text-sm text-gray-500">2025-06-11 14:20:33</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">已归档</span>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-ambulance mr-1"></i>
+                            <span>救护车C</span>
+                            <i class="fas fa-map-marker-alt ml-3 mr-1"></i>
+                            <span>北京市西城区</span>
+                        </div>
+                        <div class="mt-3 flex justify-between">
+                            <button onclick="previewVideo('vid003')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                <i class="fas fa-play mr-1"></i>预览
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="downloadVideo('vid003')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="editVideo('vid003')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteVideo('vid003')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图像项1 -->
+                <div class="card bg-white rounded-xl overflow-hidden video-thumbnail">
+                    <div class="relative">
+                        <img src="https://picsum.photos/600/400?random=5" alt="图像" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white text-sm font-medium">JPG</span>
+                                <span class="bg-pink-600 text-white text-xs px-2 py-1 rounded">图像</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" class="absolute top-2 left-2 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">患者伤口照片</h3>
+                                <p class="text-sm text-gray-500">2025-06-11 16:45:22</p>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">处理中</span>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-first-aid mr-1"></i>
+                            <span>急救现场</span>
+                            <i class="fas fa-map-marker-alt ml-3 mr-1"></i>
+                            <span>北京市丰台区</span>
+                        </div>
+                        <div class="mt-3 flex justify-between">
+                            <button onclick="previewImage('img001')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                <i class="fas fa-eye mr-1"></i>查看
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="downloadImage('img001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="editImage('img001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteImage('img001')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 视频项4 -->
+                <div class="card bg-white rounded-xl overflow-hidden video-thumbnail">
+                    <div class="relative">
+                        <img src="https://picsum.photos/600/400?random=6" alt="视频缩略图" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white text-sm font-medium">00:04:56</span>
+                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">视频</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" class="absolute top-2 left-2 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">心肺复苏培训视频</h3>
+                                <p class="text-sm text-gray-500">2025-06-10 11:10:05</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">已归档</span>
+                        </div>
+                        <div class="mt-3 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-hospital mr-1"></i>
+                            <span>北京协和医院</span>
+                            <i class="fas fa-map-marker-alt ml-3 mr-1"></i>
+                            <span>北京市东城区</span>
+                        </div>
+                        <div class="mt-3 flex justify-between">
+                            <button onclick="previewVideo('vid004')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                <i class="fas fa-play mr-1"></i>预览
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="downloadVideo('vid004')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="editVideo('vid004')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteVideo('vid004')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition text-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 分页控制 -->
+            <div class="flex justify-between items-center bg-white rounded-xl shadow-sm p-4">
+                <div class="text-sm text-gray-500">
+                    显示 <span class="font-medium">1</span> 到 <span class="font-medium">6</span> 条，共 <span class="font-medium">24</span> 条记录
+                </div>
+                <div class="flex space-x-1">
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">2</button>
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">3</button>
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">4</button>
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 预览模态框 -->
+            <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-4xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold" id="preview-title">视频预览</h3>
+                        <button onclick="closePreview()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <div class="aspect-w-16 aspect-h-9 mb-4">
+                            <video id="preview-video" controls class="w-full" style="display: none;">
+                                <source src="" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <audio id="preview-audio" controls class="w-full" style="display: none;">
+                                <source src="" type="audio/mpeg">
+                                您的浏览器不支持音频播放。
+                            </audio>
+                            <img id="preview-image" src="" alt="预览图像" class="w-full" style="display: none;">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2">
+                                <h4 class="font-medium text-gray-800 mb-2">详细信息</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">文件名</p>
+                                            <p id="preview-filename" class="font-medium">心脏复苏急救过程.mp4</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">文件类型</p>
+                                            <p id="preview-type" class="font-medium">视频</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">文件大小</p>
+                                            <p id="preview-size" class="font-medium">45.6 MB</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">时长</p>
+                                            <p id="preview-duration" class="font-medium">02:45</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">创建时间</p>
+                                            <p id="preview-created" class="font-medium">2025-06-12 09:15:23</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">修改时间</p>
+                                            <p id="preview-modified" class="font-medium">2025-06-12 09:20:45</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-2">描述</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p id="preview-description">这是一段记录心脏复苏急救过程的视频，包含标准的心肺复苏操作流程和AED使用演示。</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-2">时间轴</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg h-64 overflow-y-auto">
+                                    <div class="timeline-item">
+                                        <h5 class="font-medium text-gray-800">00:00:10</h5>
+                                        <p class="text-sm text-gray-600">开始心肺复苏操作</p>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <h5 class="font-medium text-gray-800">00:00:45</h5>
+                                        <p class="text-sm text-gray-600">AED设备准备就绪</p>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <h5 class="font-medium text-gray-800">00:01:20</h5>
+                                        <p class="text-sm text-gray-600">第一次电击</p>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <h5 class="font-medium text-gray-800">00:02:00</h5>
+                                        <p class="text-sm text-gray-600">患者恢复自主呼吸</p>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <h5 class="font-medium text-gray-800">00:02:30</h5>
+                                        <p class="text-sm text-gray-600">转运患者至救护车</p>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-2">标签</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">心肺复苏</span>
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">AED</span>
+                                        <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">急救培训</span>
+                                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">标准流程</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 flex space-x-2">
+                                    <button class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-download mr-2"></i>下载
+                                    </button>
+                                    <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                        <i class="fas fa-share-alt mr-2"></i>分享
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 初始化日期选择器
+            $('#start-date').datetimepicker({
+                format: 'YYYY-MM-DD',
+                locale: 'zh-cn'
+            });
+            
+            $('#end-date').datetimepicker({
+                format: 'YYYY-MM-DD',
+                locale: 'zh-cn',
+                useCurrent: false
+            });
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 初始化全选功能
+            document.getElementById('select-all').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.video-thumbnail input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+        });
+
+        // 应用筛选条件
+        function applyFilters() {
+            alert('正在开发中：应用筛选条件功能');
+        }
+
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('type-filter').value = 'all';
+            document.getElementById('source-filter').value = 'all';
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+        }
+
+        // 刷新视频列表
+        function refreshVideoList() {
+            alert('正在开发中：刷新视频列表功能');
+        }
+
+        // 批量下载
+        function batchDownload() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) {
+                alert('请先选择要下载的项目');
+                return;
+            }
+            alert('正在开发中：批量下载 ' + selected.join(', '));
+        }
+
+        // 批量删除
+        function batchDelete() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) {
+                alert('请先选择要删除的项目');
+                return;
+            }
+            if (confirm(`确定要删除选中的 ${selected.length} 个项目吗？`)) {
+                alert('正在开发中：批量删除 ' + selected.join(', '));
+            }
+        }
+
+        // 批量标记
+        function batchTag() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) {
+                alert('请先选择要标记的项目');
+                return;
+            }
+            alert('正在开发中：批量标记 ' + selected.join(', '));
+        }
+
+        // 批量导出
+        function batchExport() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) {
+                alert('请先选择要导出的项目');
+                return;
+            }
+            alert('正在开发中：批量导出 ' + selected.join(', '));
+        }
+
+        // 获取选中的项目ID
+        function getSelectedItems() {
+            const checkboxes = document.querySelectorAll('.video-thumbnail input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(checkbox => {
+                return checkbox.closest('.video-thumbnail').querySelector('h3').textContent;
+            });
+        }
+
+        // 预览视频
+        function previewVideo(id) {
+            document.getElementById('preview-modal').classList.remove('hidden');
+            document.getElementById('preview-video').style.display = 'block';
+            document.getElementById('preview-audio').style.display = 'none';
+            document.getElementById('preview-image').style.display = 'none';
+            document.getElementById('preview-title').textContent = '视频预览';
+            
+            // 模拟加载视频数据
+            document.getElementById('preview-filename').textContent = id + '.mp4';
+            document.getElementById('preview-type').textContent = '视频';
+            document.getElementById('preview-size').textContent = '45.6 MB';
+            document.getElementById('preview-duration').textContent = '02:45';
+            document.getElementById('preview-created').textContent = '2025-06-12 09:15:23';
+            document.getElementById('preview-modified').textContent = '2025-06-12 09:20:45';
+            document.getElementById('preview-description').textContent = '这是一段急救视频记录，包含重要的医疗操作过程。';
+        }
+
+        // 预览音频
+        function previewAudio(id) {
+            document.getElementById('preview-modal').classList.remove('hidden');
+            document.getElementById('preview-video').style.display = 'none';
+            document.getElementById('preview-audio').style.display = 'block';
+            document.getElementById('preview-image').style.display = 'none';
+            document.getElementById('preview-title').textContent = '音频预览';
+            
+            // 模拟加载音频数据
+            document.getElementById('preview-filename').textContent = id + '.mp3';
+            document.getElementById('preview-type').textContent = '音频';
+            document.getElementById('preview-size').textContent = '12.3 MB';
+            document.getElementById('preview-duration').textContent = '05:12';
+            document.getElementById('preview-created').textContent = '2025-06-12 08:30:45';
+            document.getElementById('preview-modified').textContent = '2025-06-12 08:35:20';
+            document.getElementById('preview-description').textContent = '这是一段急救通话记录，包含重要的医疗信息交流。';
+        }
+
+        // 预览图像
+        function previewImage(id) {
+            document.getElementById('preview-modal').classList.remove('hidden');
+            document.getElementById('preview-video').style.display = 'none';
+            document.getElementById('preview-audio').style.display = 'none';
+            document.getElementById('preview-image').style.display = 'block';
+            document.getElementById('preview-title').textContent = '图像预览';
+            
+            // 模拟加载图像数据
+            document.getElementById('preview-filename').textContent = id + '.jpg';
+            document.getElementById('preview-type').textContent = '图像';
+            document.getElementById('preview-size').textContent = '3.2 MB';
+            document.getElementById('preview-duration').textContent = 'N/A';
+            document.getElementById('preview-created').textContent = '2025-06-11 16:45:22';
+            document.getElementById('preview-modified').textContent = '2025-06-11 16:50:15';
+            document.getElementById('preview-description').textContent = '这是一张患者伤口照片，用于医疗记录和诊断参考。';
+        }
+
+        // 关闭预览
+        function closePreview() {
+            document.getElementById('preview-modal').classList.add('hidden');
+            const video = document.getElementById('preview-video');
+            if (video) {
+                video.pause();
+                video.currentTime = 0;
+            }
+            const audio = document.getElementById('preview-audio');
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+
+        // 下载视频
+        function downloadVideo(id) {
+            alert('正在开发中：下载视频 ' + id);
+        }
+
+        // 编辑视频
+        function editVideo(id) {
+            alert('正在开发中：编辑视频 ' + id);
+        }
+
+        // 删除视频
+        function deleteVideo(id) {
+            if (confirm('确定要删除这个视频吗？')) {
+                alert('正在开发中：删除视频 ' + id);
+            }
+        }
+
+        // 下载音频
+        function downloadAudio(id) {
+            alert('正在开发中：下载音频 ' + id);
+        }
+
+        // 编辑音频
+        function editAudio(id) {
+            alert('正在开发中：编辑音频 ' + id);
+        }
+
+        // 删除音频
+        function deleteAudio(id) {
+            if (confirm('确定要删除这个音频吗？')) {
+                alert('正在开发中：删除音频 ' + id);
+            }
+        }
+
+        // 下载图像
+        function downloadImage(id) {
+            alert('正在开发中：下载图像 ' + id);
+        }
+
+        // 编辑图像
+        function editImage(id) {
+            alert('正在开发中：编辑图像 ' + id);
+        }
+
+        // 删除图像
+        function deleteImage(id) {
+            if (confirm('确定要删除这个图像吗？')) {
+                alert('正在开发中：删除图像 ' + id);
+            }
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
