@@ -1,0 +1,907 @@
+
+<!-- emergency_av_management_server/frontend/emergency_events.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 急救事件管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .priority-high {
+            background: #ef4444;
+        }
+        .priority-medium {
+            background: #f59e0b;
+        }
+        .priority-low {
+            background: #10b981;
+        }
+        .status-processing {
+            background: #3b82f6;
+        }
+        .status-completed {
+            background: #10b981;
+        }
+        .status-pending {
+            background: #6b7280;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .event-card {
+            transition: all 0.3s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+               急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">急救事件管理</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshEventList()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 事件筛选和搜索 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
+                        <div class="relative">
+                            <input type="text" id="event-search" placeholder="搜索事件ID、患者姓名或地点..." 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <select id="priority-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有优先级</option>
+                            <option value="high">高优先级</option>
+                            <option value="medium">中优先级</option>
+                            <option value="low">低优先级</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="status-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有状态</option>
+                            <option value="processing">处理中</option>
+                            <option value="completed">已完成</option>
+                            <option value="pending">待处理</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <div class="relative">
+                            <input type="date" id="start-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <input type="date" id="end-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="applyFilters()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-filter mr-2"></i>筛选
+                        </button>
+                        <button onclick="resetFilters()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            <i class="fas fa-redo mr-2"></i>重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 事件操作工具栏 -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex justify-between items-center">
+                <div class="flex items-center">
+                    <input type="checkbox" id="select-all-events" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="select-all-events" class="ml-2 text-sm text-gray-700">全选</label>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="batchAssign()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-user-plus mr-2"></i>分配
+                    </button>
+                    <button onclick="batchChangePriority()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>设置优先级
+                    </button>
+                    <button onclick="batchChangeStatus()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-exchange-alt mr-2"></i>更改状态
+                    </button>
+                    <button onclick="batchExport()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-file-export mr-2"></i>导出
+                    </button>
+                    <button onclick="showAddEventModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-plus mr-2"></i>新增事件
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 事件列表 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex space-x-4">
+                        <button onclick="switchTab('all')" class="tab-button active px-4 py-2 font-medium">
+                            全部事件
+                        </button>
+                        <button onclick="switchTab('today')" class="tab-button px-4 py-2 font-medium">
+                            今日事件
+                        </button>
+                        <button onclick="switchTab('processing')" class="tab-button px-4 py-2 font-medium">
+                            处理中
+                        </button>
+                        <button onclick="switchTab('completed')" class="tab-button px-4 py-2 font-medium">
+                            已完成
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        共 <span class="font-medium">12</span> 条记录
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">选择</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">事件ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">患者信息</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">事件类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">优先级</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">发生时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">处理人员</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="event-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr class="event-card">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EVT-20250612001</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <p class="font-medium">张某某</p>
+                                        <p class="text-sm text-gray-500">男 · 45岁 · 心脏骤停</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">心脏骤停急救</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500 text-white">
+                                        高优先级
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-500 text-white">
+                                        处理中
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-06-12 13:25:34</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">李医生</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewEvent('EVT-20250612001')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="editEvent('EVT-20250612001')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="event-card">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EVT-20250612002</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <p class="font-medium">李某某</p>
+                                        <p class="text-sm text-gray-500">女 · 32岁 · 交通事故</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">交通事故急救</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-500 text-white">
+                                        中优先级
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">
+                                        已完成
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-06-12 10:15:22</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">王医生</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewEvent('EVT-20250612002')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="editEvent('EVT-20250612002')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="event-card">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EVT-20250611003</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <p class="font-medium">王某某</p>
+                                        <p class="text-sm text-gray-500">男 · 58岁 · 中风</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">中风急救</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">
+                                        低优先级
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500 text-white">
+                                        待处理
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-06-11 16:30:45</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewEvent('EVT-20250611003')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="editEvent('EVT-20250611003')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页控制 -->
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-sm text-gray-500">
+                        显示 <span class="font-medium">1</span> 到 <span class="font-medium">3</span> 条，共 <span class="font-medium">12</span> 条记录
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">2</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">3</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">4</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 新增事件模态框 -->
+            <div id="add-event-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-2xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">新增急救事件</h3>
+                        <button onclick="hideAddEventModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="add-event-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="patient-name" class="block text-sm font-medium text-gray-700 mb-1">患者姓名</label>
+                                    <input type="text" id="patient-name" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="patient-age" class="block text-sm font-medium text-gray-700 mb-1">患者年龄</label>
+                                    <input type="number" id="patient-age" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="patient-gender" class="block text-sm font-medium text-gray-700 mb-1">患者性别</label>
+                                    <select id="patient-gender" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">选择性别</option>
+                                        <option value="male">男</option>
+                                        <option value="female">女</option>
+                                        <option value="other">其他</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="event-type" class="block text-sm font-medium text-gray-700 mb-1">事件类型</label>
+                                    <select id="event-type" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">选择事件类型</option>
+                                        <option value="cardiac">心脏骤停</option>
+                                        <option value="trauma">创伤急救</option>
+                                        <option value="stroke">中风急救</option>
+                                        <option value="respiratory">呼吸急救</option>
+                                        <option value="other">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="event-priority" class="block text-sm font-medium text-gray-700 mb-1">优先级</label>
+                                    <select id="event-priority" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="high">高优先级</option>
+                                        <option value="medium">中优先级</option>
+                                        <option value="low">低优先级</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="event-status" class="block text-sm font-medium text-gray-700 mb-1">初始状态</label>
+                                    <select id="event-status" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="pending">待处理</option>
+                                        <option value="processing">处理中</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="event-location" class="block text-sm font-medium text-gray-700 mb-1">事件地点</label>
+                                <input type="text" id="event-location" required 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label for="event-description" class="block text-sm font-medium text-gray-700 mb-1">事件描述</label>
+                                <textarea id="event-description" rows="3" required 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button type="button" onclick="hideAddEventModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                    取消
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                    <i class="fas fa-save mr-2"></i>保存事件
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 事件详情模态框 -->
+            <div id="event-detail-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-4xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">急救事件详情</h3>
+                        <button onclick="hideEventDetailModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2">
+                                <h4 class="font-medium text-gray-800 mb-4">基本信息</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">事件ID</p>
+                                            <p id="detail-event-id" class="font-medium">EVT-20250612001</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">创建时间</p>
+                                            <p id="detail-event-created" class="font-medium">2025-06-12 13:25:34</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">患者姓名</p>
+                                            <p id="detail-patient-name" class="font-medium">张某某</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">患者年龄</p>
+                                            <p id="detail-patient-age" class="font-medium">45岁</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">患者性别</p>
+                                            <p id="detail-patient-gender" class="font-medium">男</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">事件类型</p>
+                                            <p id="detail-event-type" class="font-medium">心脏骤停急救</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">优先级</p>
+                                            <p id="detail-event-priority" class="font-medium">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500 text-white">
+                                                    高优先级
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">当前状态</p>
+                                            <p id="detail-event-status" class="font-medium">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-500 text-white">
+                                                    处理中
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">事件地点</p>
+                                            <p id="detail-event-location" class="font-medium">北京市朝阳区建国路88号</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">处理人员</p>
+                                            <p id="detail-event-operator" class="font-medium">李医生</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">事件描述</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p id="detail-event-description">患者在工作时突然晕倒，同事发现后立即拨打急救电话。急救人员到达现场时，患者已无自主呼吸和心跳，立即进行心肺复苏并使用AED除颤。</p>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">处理记录</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="space-y-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0 mr-4">
+                                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                    <i class="fas fa-user-md"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">李医生</p>
+                                                <p class="text-sm text-gray-500">2025-06-12 13:35:22</p>
+                                                <p class="mt-1 text-sm text-gray-600">已开始处理患者，正在进行心肺复苏和AED除颤</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex">
+                                            <div class="flex-shrink-0 mr-4">
+                                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                    <i class="fas fa-ambulance"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">救护车A</p>
+                                                <p class="text-sm text-gray-500">2025-06-12 13:30:45</p>
+                                                <p class="mt-1 text-sm text-gray-600">已到达现场，开始急救处理</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex">
+                                            <div class="flex-shrink-0 mr-4">
+                                                <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
+                                                    <i class="fas fa-plus"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">系统</p>
+                                                <p class="text-sm text-gray-500">2025-06-12 13:25:34</p>
+                                                <p class="mt-1 text-sm text-gray-600">急救事件已创建</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-4">快速操作</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                                    <button onclick="changeEventStatus('processing')" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-play mr-2"></i>开始处理
+                                    </button>
+                                    <button onclick="changeEventStatus('completed')" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                        <i class="fas fa-check mr-2"></i>标记完成
+                                    </button>
+                                    <button onclick="assignEvent()" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                        <i class="fas fa-user-plus mr-2"></i>分配人员
+                                    </button>
+                                    <button onclick="changeEventPriority()" class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>调整优先级
+                                    </button>
+                                    <button onclick="showEditEventModal()" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                                        <i class="fas fa-edit mr-2"></i>编辑信息
+                                    </button>
+                                    <button onclick="deleteEvent()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                        <i class="fas fa-trash-alt mr-2"></i>删除事件
+                                    </button>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">相关资源</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium">急救过程视频</p>
+                                                <p class="text-xs text-gray-500">2025-06-12 13:30:45</p>
+                                            </div>
+                                            <button onclick="viewRelatedVideo()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                                <i class="fas fa-eye mr-1"></i>查看
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium">生命体征数据</p>
+                                                <p class="text-xs text-gray-500">2025-06-12 13:35:22</p>
+                                            </div>
+                                            <button onclick="viewRelatedData()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                                <i class="fas fa-eye mr-1"></i>查看
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium">急救医生记录</p>
+                                                <p class="text-xs text-gray-500">2025-06-12 13:40:15</p>
+                                            </div>
+                                            <button onclick="viewRelatedNote()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm">
+                                                <i class="fas fa-eye mr-1"></i>查看
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">时间线</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg h-64 overflow-y-auto">
+                                    <div class="space-y-3">
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 13:35:22</p>
+                                            <p class="text-gray-600">李医生开始处理患者</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 13:30:45</p>
+                                            <p class="text-gray-600">救护车A到达现场</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 13:28:10</p>
+                                            <p class="text-gray-600">急救中心接到报警</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 13:25:34</p>
+                                            <p class="text-gray-600">急救事件创建</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 初始化全选功能
+            document.getElementById('select-all-events').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('#event-table-body input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            // 初始化表单提交
+            document.getElementById('add-event-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('正在开发中：添加新事件功能');
+                hideAddEventModal();
+            });
+        });
+
+        // 切换标签页
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tabElement => tabElement.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 模拟根据标签筛选事件
+            alert('正在开发中：按标签筛选事件 - ' + tab);
+        }
+
+        // 刷新事件列表
+        function refreshEventList() {
+            alert('正在开发中：刷新事件列表');
+        }
+
+        // 应用筛选条件
+        function applyFilters() {
+            const search = document.getElementById('event-search').value;
+            const priority = document.getElementById('priority-filter').value;
+            const status = document.getElementById('status-filter').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            alert(`正在开发中：应用筛选条件 - 搜索: ${search}, 优先级: ${priority}, 状态: ${status}, 开始日期: ${startDate}, 结束日期: ${endDate}`);
+        }
+
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('event-search').value = '';
+            document.getElementById('priority-filter').value = 'all';
+            document.getElementById('status-filter').value = 'all';
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+        }
+
+        // 批量分配
+        function batchAssign() {
+            const selected = getSelectedEvents();
+            if (selected.length === 0) {
+                alert('请先选择要分配的事件');
+                return;
+            }
+            alert('正在开发中：批量分配事件 - ' + selected.join(', '));
+        }
+
+        // 批量更改优先级
+        function batchChangePriority() {
+            const selected = getSelectedEvents();
+            if (selected.length === 0) {
+                alert('请先选择要更改优先级的事件');
+                return;
+            }
+            alert('正在开发中：批量更改优先级 - ' + selected.join(', '));
+        }
+
+        // 批量更改状态
+        function batchChangeStatus() {
+            const selected = getSelectedEvents();
+            if (selected.length === 0) {
+                alert('请先选择要更改状态的事件');
+                return;
+            }
+            alert('正在开发中：批量更改状态 - ' + selected.join(', '));
+        }
+
+        // 批量导出
+        function batchExport() {
+            const selected = getSelectedEvents();
+            if (selected.length === 0) {
+                alert('请先选择要导出的事件');
+                return;
+            }
+            alert('正在开发中：批量导出事件 - ' + selected.join(', '));
+        }
+
+        // 获取选中的事件ID
+        function getSelectedEvents() {
+            const checkboxes = document.querySelectorAll('#event-table-body input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(checkbox => {
+                return checkbox.closest('tr').querySelector('td:nth-child(2)').textContent;
+            });
+        }
+
+        // 显示新增事件模态框
+        function showAddEventModal() {
+            document.getElementById('add-event-modal').classList.remove('hidden');
+        }
+
+        // 隐藏新增事件模态框
+        function hideAddEventModal() {
+            document.getElementById('add-event-modal').classList.add('hidden');
+        }
+
+        // 查看事件详情
+        function viewEvent(eventId) {
+            document.getElementById('event-detail-modal').classList.remove('hidden');
+            // 模拟加载事件详情数据
+            document.getElementById('detail-event-id').textContent = eventId;
+        }
+
+        // 隐藏事件详情模态框
+        function hideEventDetailModal() {
+            document.getElementById('event-detail-modal').classList.add('hidden');
+        }
+
+        // 编辑事件
+        function editEvent(eventId) {
+            alert('正在开发中：编辑事件 ' + eventId);
+        }
+
+        // 显示编辑事件模态框
+        function showEditEventModal() {
+            alert('正在开发中：编辑事件信息');
+        }
+
+        // 更改事件状态
+        function changeEventStatus(status) {
+            alert('正在开发中：更改事件状态为 ' + status);
+        }
+
+        // 分配事件
+        function assignEvent() {
+            alert('正在开发中：分配事件给处理人员');
+        }
+
+        // 更改事件优先级
+        function changeEventPriority() {
+            alert('正在开发中：更改事件优先级');
+        }
+
+        // 删除事件
+        function deleteEvent() {
+            if (confirm('确定要删除这个急救事件吗？')) {
+                alert('正在开发中：删除事件');
+            }
+        }
+
+        // 查看相关视频
+        function viewRelatedVideo() {
+            alert('正在开发中：查看相关视频');
+        }
+
+        // 查看相关数据
+        function viewRelatedData() {
+            alert('正在开发中：查看相关数据');
+        }
+
+        // 查看相关记录
+        function viewRelatedNote() {
+            alert('正在开发中：查看相关记录');
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
