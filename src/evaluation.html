@@ -1,0 +1,880 @@
+
+<!-- emergency_av_management_server/frontend/evaluation.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 考核打分</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .rating-star {
+            color: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rating-star.active {
+            color: #f59e0b;
+        }
+        .rating-star:hover {
+            transform: scale(1.2);
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .criteria-item {
+            transition: all 0.3s ease;
+        }
+        .criteria-item:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+                急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">考核打分系统</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshEvaluation()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 考核类型选择 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">考核类型</h3>
+                    <button onclick="showAddTemplateModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>添加模板
+                    </button>
+                </div>
+                
+                <div class="flex overflow-x-auto pb-2 space-x-4">
+                    <button onclick="switchEvaluationTab('all')" class="tab-button active px-4 py-2 font-medium whitespace-nowrap">
+                        全部考核
+                    </button>
+                    <button onclick="switchEvaluationTab('monthly')" class="tab-button px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-calendar-alt mr-2"></i>月度考核
+                    </button>
+                    <button onclick="switchEvaluationTab('quarterly')" class="tab-button px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-calendar-check mr-2"></i>季度考核
+                    </button>
+                    <button onclick="switchEvaluationTab('annual')" class="tab-button px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-award mr-2"></i>年度考核
+                    </button>
+                    <button onclick="switchEvaluationTab('special')" class="tab-button px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-star mr-2"></i>专项考核
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 考核列表 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">考核列表</h3>
+                    <div class="flex space-x-2">
+                        <select id="evaluation-status-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有状态</option>
+                            <option value="pending">待考核</option>
+                            <option value="in-progress">考核中</option>
+                            <option value="completed">已完成</option>
+                        </select>
+                        <button onclick="applyEvaluationFilters()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-filter mr-2"></i>筛选
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">考核ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">考核名称</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">考核类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">考核对象</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">考核时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">考核状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">总分</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="evaluation-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EVAL-202506001</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">6月急救技能考核</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">月度考核</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">全体急救人员</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-06-01 至 2025-06-30</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-500 text-white">
+                                        考核中
+                                    </span>
+                                </td>
+                                <td class="px极速赛车开奖直播 6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="startEvaluation('EVAL-202506001')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-play mr-1"></i>开始
+                                    </button>
+                                    <button onclick="viewEvaluation('EVAL-202506001')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EVAL-202505001</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5月急救技能考核</td>
+                                <td class="px-6 py-4 whitespace极速赛车开奖直播 -nowrap text-sm text-gray-500">月度考核</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">全体急救人员</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-01 至 2025-05-31</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">
+                                        已完成
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">92.5</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewEvaluation('EVAL-202505001')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye mr-1"></i>查看
+                                    </button>
+                                    <button onclick="exportEvaluation('EVAL-202505001')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EVAL-2025Q2001</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">第二季度综合考核</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">季度考核</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">全体急救人员</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-04-01 至 2025-06-30</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-500 text-white">
+                                        待考核
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="prepareEvaluation('EVAL-2025Q2001')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-cog mr-1"></i>准备
+                                    </button>
+                                    <button onclick="viewEvaluation('EVAL-2025Q2001')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-eye"></极速赛车开奖直播 i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 考核评分区域 -->
+            <div id="evaluation-scoring-area" class="bg-white rounded-xl shadow-sm p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold" id="evaluation-title">6月急救技能考核</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="saveEvaluation()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-save mr-2"></i>保存
+                        </button>
+                        <button onclick="submitEvaluation()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-check mr-2"></i>提交
+                        </button>
+                        <button onclick="cancelEvaluation()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            <i class="fas fa-times mr-2"></i>取消
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">考核信息</h4>
+                        <div class="space-y-2">
+                            <div>
+                                <p class="text-sm text-gray-500">考核ID</p>
+                                <p id="scoring-eval-id" class="font-medium">EVAL-202506001</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">考核对象</p>
+                                <p id="scoring-eval-target" class="font-medium">张医生</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">考核时间</p>
+                                <p id="scoring-eval-time" class="font-medium">2025-06-12</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">考核人</p>
+                                <p id="scoring-eval-judge" class="font-medium">李主任</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">评分统计</h4>
+                        <div class="space-y-2">
+                            <div>
+                                <p class="text-sm text-gray-500">总分</p>
+                                <p id="scoring-total-score" class="text-2xl font-bold">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">平均分</p>
+                                <p id="scoring-average-score" class="text-xl font-medium">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">等级</p>
+                                <p id="scoring-grade" class="text-xl font-medium">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">考核备注</h4>
+                        <textarea id="scoring-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="请输入考核备注..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-medium text-gray-800 mb-4">评分标准</h4>
+                    <div id="scoring-criteria-list" class="space-y-4">
+                        <div class="criteria-item bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="font-medium">心肺复苏操作</h5>
+                                    <p class="text-sm text-gray-500">权重: 30%</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium mr-2">评分:</span>
+                                    <div class="rating-stars" data-criteria="cpr">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium" id="cpr-score">0</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">评估急救人员的心肺复苏操作是否符合标准流程，包括按压深度、频率、通气比例等</p>
+                        </div>
+                        
+                        <div class="criteria-item bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="font-medium">AED使用</h5>
+                                    <p class="text-sm text-gray-500">权重: 20%</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium mr-2">评分:</span>
+                                    <div class="rating-stars" data-criteria="aed">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium" id="aed-score">0</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">评估急救人员使用AED设备的熟练程度和正确性，包括电极片粘贴位置、电击时机等</p>
+                        </div>
+                        
+                        <div class="criteria-item bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="font-medium">团队协作</h5>
+                                    <p class="text-sm text-gray-500">权重: 15%</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium mr-2">评分:</span>
+                                    <div class="rating-stars" data-criteria="teamwork">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium" id="teamwork-score">0</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">评估急救人员在团队中的协作能力，包括角色分配、沟通协调等</p>
+                        </div>
+                        
+                        <div class="criteria-item bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb极速赛车开奖直播 -2">
+                                <div>
+                                    <h5 class="font-medium">急救知识</h5>
+                                    <p class="text-sm text-gray-500">权重: 15%</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium mr-2">评分:</span>
+                                    <div class="rating-stars" data-criteria="knowledge">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium" id="knowledge-score">0</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">评估急救人员的理论知识掌握程度，包括常见急症的识别和处理原则</p>
+                        </div>
+                        
+                        <div class="criteria-item bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="font-medium">设备操作</h5>
+                                    <p class="text-sm text-gray-500">权重: 10%</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium mr-2">评分:</span>
+                                    <div class="rating-stars" data-criteria="equipment">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium" id="equipment-score">0</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">评估急救人员对急救设备的操作熟练程度，包括氧气瓶、吸引器等</p>
+                        </div>
+                        
+                        <div class="criteria-item bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="font-medium">沟通能力</h5>
+                                    <p class="text-sm text-gray-500">权重: 10%</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium mr-2">评分:</span>
+                                    <div class="rating-stars" data-criteria="communication">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium" id="communication-score">0</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">评估急救人员与患者、家属及其他医护人员的沟通能力</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-800 mb-2">考核总结</h4>
+                    <textarea id="scoring-summary" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="请输入考核总结..."></textarea>
+                </div>
+            </div>
+            
+            <!-- 添加模板模态框 -->
+            <div id="add-template-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-2xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">添加考核模板</h3>
+                        <button onclick="hideAddTemplateModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="add-template-form" class="space-y-4">
+                            <div>
+                                <label for="template-name" class="block text-sm font-medium text-gray-700 mb-1">模板名称</label>
+                                <input type="text" id="template-name" required 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label for="template-type" class="block text-sm font-medium text-gray-700 mb-1">模板类型</label>
+                                <select id="template-type" required 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">选择模板类型</option>
+                                    <option value="monthly">月度考核</option>
+                                    <option value="quarterly">季度考核</option>
+                                    <option value="annual">年度考核</option>
+                                    <option value="special">专项考核</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="template-description" class="block text-sm font-medium text-gray-700 mb-1">模板描述</label>
+                                <textarea id="template-description" rows="3" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            
+                            <div class="pt-4">
+                                <h4 class="font-medium text-gray-800 mb-4">评分标准</h4>
+                                <div id="criteria-list" class="space-y-4">
+                                    <!-- 动态添加的评分标准 -->
+                                </div>
+                                <button type="button" onclick="addCriteria()" class="mt-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                    <i class="fas fa-plus mr-2"></i>添加评分标准
+                                </button>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button type="button" onclick="hideAddTemplateModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                    取消
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                    <i class="fas fa-save mr-2"></i>保存模板
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 查看考核详情模态框 -->
+            <div id="view-evaluation-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-4xl max-h-screen overflow-auto">
+                    <div class极速赛车开奖直播 ="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">考核详情</h3>
+                        <button onclick="hideViewEvaluationModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-gray-800 mb-2">考核信息</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <p class="text-sm text-gray-500">考核ID</p>
+                                        <p id="view-eval-id" class="font-medium">EVAL-202505001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">考核名称</p>
+                                        <p id="view-eval-name" class="font-medium">5月急救技能考核</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">考核类型</p>
+                                        <p id="view-eval-type" class="font-medium">月度考核</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-gray-800 mb-2">人员信息</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <p class极速赛车开奖直播 ="text-sm text-gray-500">考核对象</p>
+                                        <p id="view-eval-target" class="font-medium">张医生</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">考核人</p>
+                                        <p id="view-eval-judge" class="font-medium">李主任</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">考核时间</p>
+                                        <p id="view-eval-time" class="font-medium">2025-05-15</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-gray-800 mb-2">评分统计</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <p class="text-sm text-gray-500">总分</p>
+                                        <p id="view-total-score" class="text-2xl font-bold">92.5</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">等级</p>
+                                        <p id="view-grade" class="text-xl font-medium">优秀</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                            <h4 class="font-medium text-gray-800 mb-2">考核总结</h4>
+                            <p id="view-summary">张医生在本次考核中表现优秀，心肺复苏操作规范，AED使用熟练，团队协作能力强。理论知识掌握扎实，设备操作熟练，与患者沟通良好。建议继续保持并参与高级急救培训。</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-medium text-gray-800 mb-4">详细评分</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">评分项目</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">权重</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">得分</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">评语</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">心肺复苏操作</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">30%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">28.5</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">操作规范，按压深度和频率符合标准</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AED使用</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">20%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">19</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">电极片粘贴位置正确，电击时机把握准确</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">团队协作</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">15%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">14</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">角色分配合理，指挥协调能力强</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">急救知识</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">15%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">14</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">理论知识扎实，能够正确识别和处理急症</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">设备操作</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">9.5</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">氧气瓶、吸引器等设备操作熟练</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">沟通能力</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">9.5</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">与患者、家属沟通顺畅，表达清晰</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button onclick="exportEvaluationReport()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-download mr-2"></i>导出报告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 初始化评分星星点击事件
+            document.querySelectorAll('.rating-star').forEach(star => {
+                star.addEventListener('click', function() {
+                    const stars = this.parentElement.querySelectorAll('.rating-star');
+                    const value = parseInt(this.getAttribute('data-value'));
+                    const criteria = this.parentElement.getAttribute('data-criteria');
+                    
+                    // 更新星星状态
+                    stars.forEach((s, index) => {
+                        if (index < value) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                    
+                    // 更新分数显示
+                    document.getElementById(`${criteria}-score`).textContent = value;
+                    
+                    // 计算总分
+                    calculateTotalScore();
+                });
+            });
+
+            // 初始化表单提交
+            document.getElementById('add-template-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('正在开发中：添加考核模板功能');
+                hideAddTemplateModal();
+            });
+        });
+
+        // 计算总分
+        function calculateTotalScore() {
+            const criteriaWeights = {
+                'cpr': 0.3,
+                'aed': 0.2,
+                'teamwork': 0.15,
+                'knowledge': 0.15,
+                'equipment': 0.1,
+                'communication': 0.1
+            };
+            
+            let total = 0;
+            let weightedSum = 0;
+            let weightSum = 0;
+            
+            for (const [criteria, weight] of Object.entries(criteriaWeights)) {
+                const scoreElement = document.getElementById(`${criteria}-score`);
+                if (scoreElement) {
+                    const score = parseInt(scoreElement.textContent) || 0;
+                    weightedSum += score * weight;
+                    weightSum += weight;
+                    total += score;
+                }
+            }
+            
+            const average = weightSum > 0 ? (weightedSum / weightSum * 20).toFixed(1) : 0;
+            
+            document.getElementById('scoring-total-score').textContent = total;
+            document.getElementById('scoring-average-score').textContent = average;
+            
+            // 更新等级
+            const gradeElement = document.getElementById('scoring-grade');
+            if (average >= 90) {
+                gradeElement.textContent = '优秀';
+                gradeElement.className = 'text-xl font-medium text-green-600';
+            } else if (average >= 80) {
+                gradeElement.textContent = '良好';
+                gradeElement.className = 'text-xl font-medium text-blue-600';
+            } else if (average >= 70) {
+                gradeElement.textContent = '合格';
+                gradeElement.className = 'text-xl font-medium text-yellow-600';
+            } else {
+                gradeElement.textContent = '不合格';
+                gradeElement.className = 'text-xl font-medium text-red-600';
+            }
+        }
+
+        // 切换考核标签页
+        function switchEvaluationTab(tab) {
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tabElement => tabElement.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            alert('正在开发中：切换考核标签页 - ' + tab);
+        }
+
+        // 刷新考核列表
+        function refreshEvaluation() {
+            alert('正在开发中：刷新考核列表');
+        }
+
+        // 应用考核筛选
+        function applyEvaluationFilters() {
+            const status = document.getElementById('evaluation-status-filter').value;
+            alert('正在开发中：应用考核筛选 - 状态: ' + status);
+        }
+
+        // 开始考核
+        function startEvaluation(evalId) {
+            document.getElementById('evaluation-scoring-area').classList.remove('hidden');
+            document.getElementById('evaluation-title').textContent = '考核打分 - ' + evalId;
+            alert('正在开发中：开始考核 ' + evalId);
+        }
+
+        // 查看考核
+        function viewEvaluation(evalId) {
+            document.getElementById('view-evaluation-modal').classList.remove('hidden');
+            document.getElementById('view-eval-id').textContent = evalId;
+            alert('正在开发中：查看考核 ' + evalId);
+        }
+
+        // 准备考核
+        function prepareEvaluation(evalId) {
+            alert('正在开发中：准备考核 ' + evalId);
+        }
+
+        // 导出考核
+        function exportEvaluation(evalId) {
+            alert('正在开发中：导出考核 ' + evalId);
+        }
+
+        // 保存考核
+        function saveEvaluation() {
+            alert('正在开发中：保存考核');
+        }
+
+        // 提交考核
+        function submitEvaluation() {
+            if (confirm('确定要提交考核吗？提交后不可修改')) {
+                alert('正在开发中：提交考核');
+            }
+        }
+
+        // 取消考核
+        function cancelEvaluation() {
+            if (confirm('确定要取消当前考核吗？未保存的更改将丢失')) {
+                document.getElementById('evaluation-scoring-area').classList.add('hidden');
+            }
+        }
+
+        // 显示添加模板模态框
+        function showAddTemplateModal() {
+            document.getElementById('add-template-modal').classList.remove('hidden');
+        }
+
+        // 隐藏添加模板模态框
+        function hideAddTemplateModal() {
+            document.getElementById('add-template-modal').classList.add('hidden');
+        }
+
+        // 隐藏查看考核模态框
+        function hideViewEvaluationModal() {
+            document.getElementById('view-evaluation-modal').classList.add('hidden');
+        }
+
+        // 添加评分标准
+        function addCriteria() {
+            alert('正在开发中：添加评分标准');
+        }
+
+        // 导出考核报告
+        function exportEvaluationReport() {
+            alert('正在开发中：导出考核报告');
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
