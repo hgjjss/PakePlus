@@ -1,0 +1,923 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/exception.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>异常业务处理 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .priority-high {
+            background-color: #fee2e2;
+            color: #991b1b;
+            animation: pulse 2s infinite;
+        }
+        .priority-medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .priority-low {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .exception-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .type-system {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        .type-business {
+            background-color: #ede9fe;
+            color: #7c3aed;
+        }
+        .type-data {
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
+        .type-security {
+            background-color: #ffedd5;
+            color: #9a3412;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        /* 新增按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #4f46e5;
+            border: 1px solid #4f46e5;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #f5f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        /* 微交互动效 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        .ripple:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+        /* 优先级标识优化 */
+        .priority-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .priority-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .priority-dot.high {
+            background-color: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+        .priority-dot.medium {
+            background-color: #f59e0b;
+        }
+        .priority-dot.low {
+            background-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">异常业务处理</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">异常业务处理</h1>
+                <div class="flex space-x-3">
+                    <button id="batchHandleBtn" class="ripple bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 py-2 rounded-lg hover:shadow-lg transition duration-300 transform action-btn">
+                        <i class="fas fa-bolt mr-2"></i>批量处理
+                    </button>
+                    <button id="exportBtn" class="ripple bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 action-btn">
+                        <i class="fas fa-file-export mr-2"></i>导出
+                    </button>
+                    <button id="refreshBtn" class="ripple bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition duration-300 transform action-btn">
+                        <i class="fas fa-sync-alt mr-2"></i>刷新
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">待处理异常</p>
+                            <p class="text-2xl font-bold text-gray-800">18</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-red-600">
+                        <i class="fas fa-arrow-up mr-1"></i>3 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">高优先级</p>
+                            <p class="text-2xl font-bold text-gray-800">5</p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-fire text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-yellow-600">
+                        <i class="fas fa-arrow-down mr-1"></i>1 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">已处理异常</p>
+                            <p class="text-2xl font-bold text-gray-800">42</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">
+                        <i class="fas fa-arrow-up mr-1"></i>8 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">平均处理时间</p>
+                            <p class="text-2xl font-bold text-gray-800">2.5h</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-clock text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600">
+                        <i class="fas fa-arrow-down mr-1"></i>0.5h 较上周
+                    </div>
+                </div>
+            </div>
+
+            <!-- 过滤和搜索区域 -->
+            <div class="bg-white rounded-xl p-4 mb-6 card">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <!-- 批量操作 -->
+                    <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                        <select id="batchAction" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">批量操作</option>
+                            <option value="assign">批量分配</option>
+                            <option value="resolve">批量解决</option>
+                            <option value="ignore">批量忽略</option>
+                            <option value="escalate">提升优先级</option>
+                            <option value="deescalate">降低优先级</option>
+                        </select>
+                        <button id="applyBatchAction" class="ripple bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            应用
+                        </button>
+                    </div>
+
+                    <!-- 搜索和过滤 -->
+                    <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="搜索异常ID/描述..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="priorityFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部优先级</option>
+                            <option value="high">高</option>
+                            <option value="medium">中</option>
+                            <option value="low">低</option>
+                        </select>
+                        <select id="typeFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部类型</option>
+                            <option value="system">系统异常</option>
+                            <option value="business">业务异常</option>
+                            <option value="data">数据异常</option>
+                            <option value="security">安全异常</option>
+                        </select>
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部状态</option>
+                            <option value="pending">待处理</option>
+                            <option value="processing">处理中</option>
+                            <option value="resolved">已解决</option>
+                            <option value="ignored">已忽略</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 异常记录表格 -->
+            <div class="bg-white rounded-xl overflow-hidden card">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" id="selectAll" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    异常ID
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    类型
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    描述
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    优先级
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    发生时间
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    处理人
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="exceptionTableBody">
+                            <!-- 示例数据行 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">EX-20250612-001</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type type-system">系统异常</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">参保登记接口超时</div>
+                                    <div class="text-xs text-gray-500 mt-1">交易ID: TX20250612001</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="priority-indicator">
+                                        <div class="priority-dot high"></div>
+                                        <span class="exception-type priority-high">高</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type status-pending">待处理</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 09:15</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">未分配</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex space-x-2 justify-end">
+                                        <button class="text-blue-500 hover:text-blue-700 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 action-btn" title="分配给我"><i class="fas fa-user-plus"></i></button>
+                                        <button class="text-purple-500 hover:text-purple-700 action-btn" title="标记为已解决"><i class="fas fa-check"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- 第二行数据示例 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">EX-20250612-002</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type type-business">业务异常</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">参保人信息校验失败</div>
+                                    <div class="text-xs text-gray-500 mt-1">交易ID: TX20250612008</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="priority-indicator">
+                                        <div class="priority-dot medium"></div>
+                                        <span class="exception-type priority-medium">中</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type status-processing">处理中</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 10:23</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">张三</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex space-x-2 justify-end">
+                                        <button class="text-blue-500 hover:text-blue-700 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 action-btn" title="编辑"><i class="fas fa-edit"></i></button>
+                                        <button class="text-purple-500 hover:text-purple-700 action-btn" title="标记为已解决"><i class="fas fa-check"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- 第三行数据示例 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">EX-20250612-003</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type type-data">数据异常</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">缴费记录数据不一致</div>
+                                    <div class="text-xs text-gray-500 mt-1">交易ID: TX20250612015</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="priority-indicator">
+                                        <div class="priority-dot low"></div>
+                                        <span class="exception-type priority-low">低</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type status-pending">待处理</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 11:05</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">未分配</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex space-x-2 justify-end">
+                                        <button class="text-blue-500 hover:text-blue-700 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 action-btn" title="分配给我"><i class="fas fa-user-plus"></i></button>
+                                        <button class="text-purple-500 hover:text-purple-700 action-btn" title="标记为已解决"><i class="fas fa-check"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- 第四行数据示例 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">EX-20250612-004</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type type-security">安全异常</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">用户权限异常访问</div>
+                                    <div class="text-xs text-gray-500 mt-1">交易ID: TX20250612022</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="priority-indicator">
+                                        <div class="priority-dot high"></div>
+                                        <span class="exception-type priority-high">高</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="exception-type status-pending">待处理</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 11:32</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">未分配</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex space-x-2 justify-end">
+                                        <button class="text-blue-500 hover:text-blue-700 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 action-btn" title="分配给我"><i class="fas fa-user-plus"></i></button>
+                                        <button class="text-purple-500 hover:text-purple-700 action-btn" title="标记为已解决"><i class="fas fa-check"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            上一页
+                        </a>
+                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            下一页
+                        </a>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">18</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">上一页</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </a>
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">下一页</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 异常详情模态框 -->
+    <div id="exceptionDetailModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">异常详情</h3>
+                                <div class="flex space-x-2">
+                                    <span id="detailPriority" class="exception-type priority-high">高</span>
+                                    <span id="detailType" class="exception-type type-system">系统异常</span>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">异常ID</p>
+                                        <p class="text-sm font-medium text-gray-900">EX-20250612-001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">发生时间</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12 09:15:23</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">当前状态</p>
+                                        <p class="text-sm font-medium text-gray-900">待处理</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">关联交易</p>
+                                        <p class="text-sm font-medium text-gray-900">TX20250612001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">处理人</p>
+                                        <p class="text-sm font-medium text-gray-900">未分配</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">处理时限</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12 12:00</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">异常描述</p>
+                                    <p class="text-sm font-medium text-gray-900 mt-1">参保登记接口调用超时，响应时间超过5秒，导致前端页面卡顿。</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">错误详情</p>
+                                    <div class="mt-1 bg-gray-50 p-3 rounded-md">
+                                        <code class="text-xs text-gray-800">
+                                            java.net.SocketTimeoutException: Read timed out<br>
+                                            at java.base/java.net.SocketInputStream.read(SocketInputStream.java:186)<br>
+                                            at java.base/java.net.SocketInputStream.read(SocketInputStream.java:140)<br>
+                                            at java.base/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:478)
+                                        </code>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">处理记录</p>
+                                    <div class="mt-2 space-y-2">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <img class="h-6 w-6 rounded-full" src="https://picsum.photos/40/40?random=2" alt="">
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">系统自动检测</p>
+                                                <p class="text-sm text-gray-500">2025-06-12 09:15:23 · 检测到异常</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">处理意见</p>
+                                    <textarea id="resolutionNote" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="请输入处理意见..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-base font-medium text-white hover:shadow-lg transition duration-200 sm:ml-3 sm:w-auto sm:text-sm">
+                        标记为已解决
+                    </button>
+                    <button type="button" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-base font-medium text-white hover:shadow-lg transition duration-200 sm:ml-3 sm:w-auto sm:text-sm">
+                        分配给我
+                    </button>
+                    <button type="button" id="closeDetailModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量处理模态框 -->
+    <div id="batchProcessModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-bolt text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">批量处理异常</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">请选择需要执行的批量操作和处理人员</p>
+                                <div class="mt-4 space-y-4">
+                                    <div>
+                                        <label for="batchProcessAction" class="block text-sm font-medium text-gray-700">操作类型</label>
+                                        <select id="batchProcessAction" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                            <option value="assign">批量分配</option>
+                                            <option value="resolve">标记已解决</option>
+                                            <option value="ignore">忽略异常</option>
+                                            <option value="escalate">提升优先级</option>
+                                        </select>
+                                    </div>
+                                    <div id="assignToContainer">
+                                        <label for="assignTo" class="block text-sm font-medium text-gray-700">分配给</label>
+                                        <select id="assignTo" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                            <option value="me">我自己</option>
+                                            <option value="team1">业务支持团队</option>
+                                            <option value="team2">技术支持团队</option>
+                                            <option value="team3">数据管理团队</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="batchNote" class="block text-sm font-medium text-gray-700">处理备注</label>
+                                        <textarea id="batchNote" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="可选填写处理备注..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmBatchProcess" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-base font-medium text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        确认处理
+                    </button>
+                    <button type="button" id="cancelBatchProcess" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 批量选择功能
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            const applyBatchActionBtn = document.getElementById('applyBatchAction');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBatchActionButton();
+            });
+
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!this.checked) {
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                    updateBatchActionButton();
+                });
+            });
+
+            function updateBatchActionButton() {
+                const checkedCount = Array.from(rowCheckboxes).filter(cb => cb.checked).length;
+                applyBatchActionBtn.disabled = checkedCount === 0;
+                if (checkedCount > 0) {
+                    applyBatchActionBtn.textContent = `应用 (${checkedCount})`;
+                } else {
+                    applyBatchActionBtn.textContent = '应用';
+                }
+            }
+
+            // 批量操作
+            applyBatchActionBtn.addEventListener('click', function() {
+                const action = document.getElementById('batchAction').value;
+                if (!action) {
+                    alert('请选择批量操作类型');
+                    return;
+                }
+
+                const selectedRows = Array.from(rowCheckboxes).filter(cb => cb.checked);
+                const selectedIds = selectedRows.map(cb => cb.closest('tr').querySelector('td:nth-child(2)').textContent);
+                
+                // 显示批量处理模态框
+                const batchProcessModal = document.getElementById('batchProcessModal');
+                const batchProcessAction = document.getElementById('batchProcessAction');
+                const assignToContainer = document.getElementById('assignToContainer');
+                
+                // 根据选择的操作类型决定是否显示"分配给"选项
+                batchProcessAction.value = action;
+                assignToContainer.style.display = action === 'assign' ? 'block' : 'none';
+                
+                batchProcessModal.classList.remove('hidden');
+            });
+            
+            // 批量处理模态框
+            const batchProcessModal = document.getElementById('batchProcessModal');
+            const confirmBatchProcess = document.getElementById('confirmBatchProcess');
+            const cancelBatchProcess = document.getElementById('cancelBatchProcess');
+            const batchProcessAction = document.getElementById('batchProcessAction');
+            const assignToContainer = document.getElementById('assignToContainer');
+            
+            batchProcessAction.addEventListener('change', function() {
+                assignToContainer.style.display = this.value === 'assign' ? 'block' : 'none';
+            });
+            
+            confirmBatchProcess.addEventListener('click', function() {
+                // 模拟批量处理
+                const action = batchProcessAction.value;
+                const assignTo = document.getElementById('assignTo').value;
+                const note = document.getElementById('batchNote').value;
+                
+                // 在实际应用中，这里会调用API进行批量处理
+                console.log(`执行批量操作: ${action}`, { assignTo, note });
+                
+                // 显示加载状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>处理中';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    // 恢复按钮状态
+                    this.innerHTML = '确认处理';
+                    this.disabled = false;
+                    
+                    // 关闭模态框
+                    batchProcessModal.classList.add('hidden');
+                    
+                    // 显示成功提示
+                    const selectedRows = Array.from(rowCheckboxes).filter(cb => cb.checked);
+                    let actionText = '';
+                    switch(action) {
+                        case 'assign': actionText = '已分配'; break;
+                        case 'resolve': actionText = '已解决'; break;
+                        case 'ignore': actionText = '已忽略'; break;
+                        case 'escalate': actionText = '已提升优先级'; break;
+                        default: actionText = action;
+                    }
+                    
+                    alert(`成功处理 ${selectedRows.length} 条异常记录！状态: ${actionText}`);
+                    
+                    // 重置选择
+                    selectAllCheckbox.checked = false;
+                    rowCheckboxes.forEach(cb => cb.checked = false);
+                    updateBatchActionButton();
+                }, 1500);
+            });
+            
+            cancelBatchProcess.addEventListener('click', function() {
+                batchProcessModal.classList.add('hidden');
+            });
+
+            // 搜索过滤功能
+            const searchInput = document.getElementById('searchInput');
+            const priorityFilter = document.getElementById('priorityFilter');
+            const typeFilter = document.getElementById('typeFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const priorityValue = priorityFilter.value;
+                const typeValue = typeFilter.value;
+                const statusValue = statusFilter.value;
+                
+                document.querySelectorAll('#exceptionTableBody tr').forEach(row => {
+                    const id = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const desc = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                    const priority = row.querySelector('td:nth-child(5) span').classList.contains(`priority-${priorityValue}`);
+                    const type = row.querySelector('td:nth-child(3) span').classList.contains(`type-${typeValue}`);
+                    const status = row.querySelector('td:nth-child(6) span').classList.contains(`status-${statusValue}`);
+                    
+                    const matchesSearch = id.includes(searchTerm) || desc.includes(searchTerm);
+                    const matchesPriority = !priorityValue || priority;
+                    const matchesType = !typeValue || type;
+                    const matchesStatus = !statusValue || status;
+                    
+                    row.style.display = matchesSearch && matchesPriority && matchesType && matchesStatus ? '' : 'none';
+                });
+            }
+            
+            searchInput.addEventListener('input', filterTable);
+            priorityFilter.addEventListener('change', filterTable);
+            typeFilter.addEventListener('change', filterTable);
+            statusFilter.addEventListener('change', filterTable);
+
+            // 刷新按钮
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.addEventListener('click', function() {
+                // 模拟刷新数据
+                console.log('刷新异常数据');
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>刷新中';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>刷新';
+                    alert('异常数据已刷新');
+                }, 1000);
+            });
+
+            // 导出功能
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function() {
+                // 模拟导出数据
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导出中';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-file-export mr-2"></i>导出';
+                    
+                    const data = [
+                        { id: 'EX-20250612-001', type: '系统异常', desc: '参保登记接口超时', priority: '高', status: '待处理', time: '2025-06-12 09:15', assignee: '未分配' },
+                        { id: 'EX-20250612-002', type: '业务异常', desc: '身份证号校验失败', priority: '中', status: '处理中', time: '2025-06-12 08:30', assignee: '张三' },
+                        { id: 'EX-20250611-003', type: '数据异常', desc: '缴费记录重复', priority: '低', status: '已解决', time: '2025-06-11 14:45', assignee: '李四' }
+                    ];
+                    
+                    // 调用全局导出方法
+                    if (window.exportData) {
+                        window.exportData(data, 'csv', '异常记录');
+                    } else {
+                        alert('导出功能正在开发中');
+                    }
+                }, 1000);
+            });
+            
+            // 批量处理按钮
+            const batchHandleBtn = document.getElementById('batchHandleBtn');
+            batchHandleBtn.addEventListener('click', function() {
+                // 检查是否有选中的行
+                const selectedRows = Array.from(rowCheckboxes).filter(cb => cb.checked);
+                if (selectedRows.length === 0) {
+                    alert('请先选择需要处理的异常记录');
+                    return;
+                }
+                
+                // 显示批量处理模态框
+                batchProcessModal.classList.remove('hidden');
+            });
+
+            // 异常详情模态框
+            const exceptionDetailModal = document.getElementById('exceptionDetailModal');
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            
+            // 点击表格中的查看按钮打开模态框
+            document.querySelectorAll('#exceptionTableBody .fa-eye').forEach(eyeIcon => {
+                eyeIcon.addEventListener('click', function() {
+                    exceptionDetailModal.classList.remove('hidden');
+                });
+            });
+            
+            closeDetailModal.addEventListener('click', function() {
+                exceptionDetailModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === exceptionDetailModal) {
+                    exceptionDetailModal.classList.add('hidden');
+                }
+                if (event.target === batchProcessModal) {
+                    batchProcessModal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
