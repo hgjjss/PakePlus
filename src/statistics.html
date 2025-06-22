@@ -1,0 +1,610 @@
+
+<!-- emergency_av_management_server/frontend/statistics.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 数据统计</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+                急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">数据统计分析</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshStatistics()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 时间范围选择 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">统计时间范围</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="setTimeRange('today')" class="tab-button active px-4 py-2 font-medium">
+                            今日
+                        </button>
+                        <button onclick="setTimeRange('week')" class="tab-button px-4 py-2 font-medium">
+                            本周
+                        </button>
+                        <button onclick="setTimeRange('month')" class="tab-button px-4 py-2 font-medium">
+                            本月
+                        </button>
+                        <button onclick="setTimeRange('year')" class="tab-button px-4 py-2 font-medium">
+                            本年
+                        </button>
+                        <button onclick="setTimeRange('custom')" class="tab-button px-4 py-2 font-medium">
+                            自定义
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="custom-range" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+                        <div class="relative">
+                            <input type="date" id="start-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
+                        <div class="relative">
+                            <input type="date" id="end-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="applyCustomRange()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            应用
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计图表 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">急救事件统计</h3>
+                    <div class="flex space-x-2">
+                        <select id="event-type-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">全部事件类型</option>
+                            <option value="cardiac">心脏骤停</option>
+                            <option value="trauma">创伤急救</option>
+                            <option value="stroke">中风急救</option>
+                            <option value="respiratory">呼吸急救</option>
+                        </select>
+                        <button onclick="exportChart('event')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <i class="fas fa-download mr-2"></i>导出
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="chart-container">
+                        <canvas id="eventTrendChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="eventTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">设备使用统计</h3>
+                    <div class="flex space-x-2">
+                        <select id="device-type-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">全部设备类型</option>
+                            <option value="video">视频设备</option>
+                            <option value="audio">音频设备</option>
+                            <option value="medical">医疗设备</option>
+                        </select>
+                        <button onclick="exportChart('device')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <i class="fas fa-download mr-2"></i>导出
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="chart-container">
+                        <canvas id="deviceUsageChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="deviceStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">视音频资源统计</h3>
+                    <div class="flex space-x-2">
+                        <select id="media-type-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">全部资源类型</option>
+                            <option value="video">视频</option>
+                            <option value="audio">音频</option>
+                            <option value="image">图像</option>
+                        </select>
+                        <button onclick="exportChart('media')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <i class="fas fa-download mr-2"></i>导出
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="chart-container">
+                        <canvas id="mediaStorageChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="mediaTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 初始化图表
+            initCharts();
+        });
+
+        // 设置时间范围
+        function setTimeRange(range) {
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const customRange = document.getElementById('custom-range');
+            if (range === 'custom') {
+                customRange.classList.remove('hidden');
+            } else {
+                customRange.classList.add('hidden');
+                loadStatistics(range);
+            }
+        }
+
+        // 应用自定义时间范围
+        function applyCustomRange() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            if (!startDate || !endDate) {
+                alert('请选择开始和结束日期');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('开始日期不能晚于结束日期');
+                return;
+            }
+            
+            loadStatistics('custom', startDate, endDate);
+        }
+
+        // 加载统计数据
+        function loadStatistics(range, startDate, endDate) {
+            alert('正在加载 ' + range + ' 统计数据...');
+            // 这里应该是AJAX请求获取数据
+            updateCharts();
+        }
+
+        // 刷新统计数据
+        function refreshStatistics() {
+            const activeTab = document.querySelector('.tab-button.active');
+            if (activeTab.textContent.trim() === '自定义') {
+                applyCustomRange();
+            } else {
+                setTimeRange(activeTab.textContent.trim().toLowerCase());
+            }
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 急救事件趋势图
+            const eventTrendCtx = document.getElementById('eventTrendChart').getContext('2d');
+            window.eventTrendChart = new Chart(eventTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [{
+                        label: '急救事件数量',
+                        data: [120, 190, 150, 170, 180, 200],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '急救事件趋势分析'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 急救事件类型分布图
+            const eventTypeCtx = document.getElementById('eventTypeChart').getContext('2d');
+            window.eventTypeChart = new Chart(eventTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['心脏骤停', '创伤急救', '中风急救', '呼吸急救', '其他'],
+                    datasets: [{
+                        data: [35, 25, 15, 10, 15],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(156, 163, 175, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(156, 163, 175, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '急救事件类型分布'
+                        },
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // 设备使用率图表
+            const deviceUsageCtx = document.getElementById('deviceUsageChart').getContext('2d');
+            window.deviceUsageChart = new Chart(deviceUsageCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['视频记录仪', '音频采集器', '生命体征监测', '存储设备'],
+                    datasets: [{
+                        label: '使用率(%)',
+                        data: [85, 75, 60, 90],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '设备使用率统计'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // 设备状态分布图
+            const deviceStatusCtx = document.getElementById('deviceStatusChart').getContext('2d');
+            window.deviceStatusChart = new Chart(deviceStatusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['在线', '离线', '警告'],
+                    datasets: [{
+                        data: [24, 3, 2],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '设备状态分布'
+                        }
+                    }
+                }
+            });
+
+            // 媒体存储使用图表
+            const mediaStorageCtx = document.getElementById('mediaStorageChart').getContext('2d');
+            window.mediaStorageChart = new Chart(mediaStorageCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [
+                        {
+                            label: '视频存储(GB)',
+                            data: [120, 150, 170, 190, 210, 230],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: '音频存储(GB)',
+                            data: [50, 60, 65, 70, 75, 80],
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: '图像存储(GB)',
+                            data: [30, 35, 40, 45, 50, 55],
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '媒体存储增长趋势'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 媒体类型分布图
+            const mediaTypeCtx = document.getElementById('mediaTypeChart').getContext('2d');
+            window.mediaTypeChart = new Chart(mediaTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['视频', '音频', '图像'],
+                    datasets: [{
+                        data: [65, 20, 15],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(16, 185, 129, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '媒体类型分布'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新图表数据
+        function updateCharts() {
+            // 模拟数据更新
+            const newEventData = [Math.floor(Math.random() * 50) + 100, 
+                                 Math.floor(Math.random() * 50) + 100, 
+                                 Math.floor(Math.random() * 50) + 100, 
+                                 Math.floor(Math.random() * 50) + 100, 
+                                 Math.floor(Math.random() * 50) + 100, 
+                                 Math.floor(Math.random() * 50) + 100];
+            
+            window.eventTrendChart.data.datasets[0].data = newEventData;
+            window.eventTrendChart.update();
+            
+            alert('图表数据已更新');
+        }
+
+        // 导出图表数据
+        function exportChart(chartType) {
+            alert('正在导出 ' + chartType + ' 图表数据');
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
