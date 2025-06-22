@@ -1,0 +1,872 @@
+
+<!-- emergency_av_management_server/frontend/device_management.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 设备管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-online {
+            background: #10b981;
+        }
+        .status-offline {
+            background: #ef4444;
+        }
+        .status-warning {
+            background: #f59e0b;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .device-card {
+            transition: all 0.3s ease;
+        }
+        .device-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .group-tab.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+                急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">设备管理</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshDeviceList()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 设备分组筛选 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">设备分组</h3>
+                    <button onclick="showAddGroupModal()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-plus mr-2"></i>添加分组
+                    </button>
+                </div>
+                
+                <div class="flex overflow-x-auto pb-2 space-x-4">
+                    <button onclick="filterDevices('all')" class="group-tab active px-4 py-2 font-medium whitespace-nowrap">
+                        全部设备
+                    </button>
+                    <button onclick="filterDevices('video')" class="group-tab px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-video mr-2"></i>视频设备
+                    </button>
+                    <button onclick="filterDevices('audio')" class="group-tab px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-microphone mr-2"></i>音频设备
+                    </button>
+                    <button onclick="filterDevices('storage')" class="group-tab px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-database mr-2"></i>存储设备
+                    </button>
+                    <button onclick="filterDevices('medical')" class="group-tab px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-medkit mr-2"></i>医疗设备
+                    </button>
+                    <button onclick="filterDevices('ambulance')" class="group-tab px-4 py-2 font-medium whitespace-nowrap">
+                        <i class="fas fa-ambulance mr-2"></i>车载设备
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 设备搜索和筛选 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
+                        <div class="relative">
+                            <input type="text" id="device-search" placeholder="搜索设备名称、ID或位置..." 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <select id="status-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有状态</option>
+                            <option value="online">在线</option>
+                            <option value="warning">警告</option>
+                            <option value="offline">离线</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="location-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">所有位置</option>
+                            <option value="ambulance-a">救护车A</option>
+                            <option value="ambulance-b">救护车B</option>
+                            <option value="ambulance-c">救护车C</option>
+                            <option value="hospital">医院</option>
+                            <option value="first-aid">急救现场</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-4">
+                    <button onclick="applyDeviceFilters()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-filter mr-2"></i>应用筛选
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 设备列表 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">设备列表</h3>
+                    <button onclick="showAddDeviceModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>添加设备
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">选择</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备名称</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">分组</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">位置</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后活动</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="device-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- 设备数据将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页控制 -->
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-sm text-gray-500">
+                        显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">24</span> 条记录
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">2</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">3</button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 设备状态统计 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4">设备状态分布</h3>
+                    <div class="h-64">
+                        <canvas id="device-status-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4">设备类型分布</h3>
+                    <div class="h-64">
+                        <canvas id="device-type-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4">设备位置分布</h3>
+                    <div class="h-64">
+                        <canvas id="device-location-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 批量操作区域 -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex justify-between items-center">
+                <div class="flex items-center">
+                    <input type="checkbox" id="select-all-devices" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="select-all-devices" class="ml-2 text-sm text-gray-700">全选</label>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="batchControl('restart')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>重启
+                    </button>
+                    <button onclick="batchControl('shutdown')" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-power-off mr-2"></i>关机
+                    </button>
+                    <button onclick="batchControl('update')" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-cloud-download-alt mr-2"></i>更新
+                    </button>
+                    <button onclick="batchMoveToGroup()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-object-group mr-2"></i>移动分组
+                    </button>
+                    <button onclick="batchDeleteDevices()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                        <i class="fas fa-trash-alt mr-2"></i>删除
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 添加设备模态框 -->
+            <div id="add-device-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-2xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">添加新设备</h3>
+                        <button onclick="hideAddDeviceModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="add-device-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="device-name" class="block text-sm font-medium text-gray-700 mb-1">设备名称</label>
+                                    <input type="text" id="device-name" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="device-type" class="block text-sm font-medium text-gray-700 mb-1">设备类型</label>
+                                    <select id="device-type" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">选择设备类型</option>
+                                        <option value="video">视频采集设备</option>
+                                        <option value="audio">音频采集设备</option>
+                                        <option value="storage">存储设备</option>
+                                        <option value="medical">医疗设备</option>
+                                        <option value="other">其他设备</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="device-group" class="block text-sm font-medium text-gray-700 mb-1">设备分组</label>
+                                    <select id="device-group" 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">选择分组</option>
+                                        <option value="video">视频设备</option>
+                                        <option value="audio">音频设备</option>
+                                        <option value="storage">存储设备</option>
+                                        <option value="medical">医疗设备</option>
+                                        <option value="ambulance">车载设备</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="device-location" class="block text-sm font-medium text-gray-700 mb-1">设备位置</label>
+                                    <select id="device-location" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">选择位置</option>
+                                        <option value="ambulance-a">救护车A</option>
+                                        <option value="ambulance-b">救护车B</option>
+                                        <option value="ambulance-c">救护车C</option>
+                                        <option value="hospital">医院</option>
+                                        <option value="first-aid">急救现场</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="device-ip" class="block text-sm font-medium text-gray-700 mb-1">IP地址</label>
+                                <input type="text" id="device-ip" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label for="device-description" class="block text-sm font-medium text-gray-700 mb-1">设备描述</label>
+                                <textarea id="device-description" rows="3" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button type="button" onclick="hideAddDeviceModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                    取消
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                    <i class="fas fa-save mr-2"></i>保存设备
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 设备详情模态框 -->
+            <div id="device-detail-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-4xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">设备详情</h3>
+                        <button onclick="hideDeviceDetailModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2">
+                                <h4 class="font-medium text-gray-800 mb-4">基本信息</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">设备ID</p>
+                                            <p id="detail-id" class="font-medium">DEV-001</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">设备名称</p>
+                                            <p id="detail-name" class="font-medium">急救记录仪</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">设备类型</p>
+                                            <p id="detail-type" class="font-medium">视频采集设备</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">设备分组</p>
+                                            <p id="detail-group" class="font-medium">视频设备</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">设备位置</p>
+                                            <p id="detail-location" class="font-medium">救护车A</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">IP地址</p>
+                                            <p id="detail-ip" class="font-medium">192.168.1.100</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">MAC地址</p>
+                                            <p id="detail-mac" class="font-medium">00:1A:2B:3C:4D:5E</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">固件版本</p>
+                                            <p id="detail-firmware" class="font-medium">v2.3.5</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">状态信息</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">当前状态</p>
+                                            <p id="detail-status" class="font-medium">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">在线</span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">最后活动时间</p>
+                                            <p id="detail-last-active" class="font-medium">2025-06-12 14:30:22</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">CPU使用率</p>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 45%"></div>
+                                                </div>
+                                                <span class="ml-2 text-sm font-medium">45%</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">内存使用率</p>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 68%"></div>
+                                                </div>
+                                                <span class="ml-2 text-sm font-medium">68%</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">存储使用率</p>
+                                            <div class="flex items-center">
+                                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 32%"></div>
+                                                </div>
+                                                <span class="ml-2 text-sm font-medium">32%</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">网络状态</p>
+                                            <p class="font-medium">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">正常</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">设备描述</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p id="detail-description">这是一台用于记录急救过程的高清视频设备，安装在救护车A上，支持1080P高清录制和实时传输。</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-4">设备控制</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                                    <button onclick="controlDevice('restart')" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-sync-alt mr-2"></i>重启设备
+                                    </button>
+                                    <button onclick="controlDevice('shutdown')" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                                        <i class="fas fa-power-off mr-2"></i>关闭设备
+                                    </button>
+                                    <button onclick="controlDevice('update')" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                        <i class="fas fa-cloud-download-alt mr-2"></i>更新固件
+                                    </button>
+                                    <button onclick="showEditDeviceModal()" class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                                        <i class="fas fa-edit mr-2"></i>编辑信息
+                                    </button>
+                                    <button onclick="deleteCurrentDevice()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                        <i class="fas fa-trash-alt mr-2"></i>删除设备
+                                    </button>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">设备日志</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg h-64 overflow-y-auto">
+                                    <div class="space-y-3">
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 14:30:22</p>
+                                            <p class="text-gray-600">设备状态检查完成，所有系统正常</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 12:15:08</p>
+                                            <p class="text-gray-600">视频录制已启动，存储空间充足</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 10:20:45</p>
+                                            <p class="text-gray-600">网络连接恢复，数据传输正常</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 08:05:33</p>
+                                            <p class="text-gray-600">设备启动完成，系统初始化成功</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-11 23:40:12</p>
+                                            <p class="text-gray-600">设备已关机</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/monitor.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 加载设备数据
+            loadDeviceData();
+            
+            // 初始化图表
+            initDeviceCharts();
+            
+            // 初始化全选功能
+            document.getElementById('select-all-devices').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('#device-table-body input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+        });
+
+        // 加载设备数据
+        function loadDeviceData() {
+            const devices = JSON.parse(localStorage.getItem('devices')) || [];
+            updateDeviceTable(devices);
+        }
+
+        // 更新设备表格
+        function updateDeviceTable(devices) {
+            const tableBody = document.getElementById('device-table-body');
+            tableBody.innerHTML = devices.map(device => `
+                <tr class="device-card">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="checkbox" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${device.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.group || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.location}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${device.status === 'online' ? 'bg-green-500' : device.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'} 
+                            text-white">
+                            ${device.status === 'online' ? '在线' : device.status === 'warning' ? '警告' : '离线'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.lastActive}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="viewDevice('${device.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editDevice('${device.id}')" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 初始化设备图表
+        function initDeviceCharts() {
+            // 设备状态图表
+            const statusCtx = document.createElement('canvas');
+            document.getElementById('device-status-chart').appendChild(statusCtx);
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['在线', '警告', '离线'],
+                    datasets: [{
+                        data: [18, 3, 3],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            // 设备类型图表
+            const typeCtx = document.createElement('canvas');
+            document.getElementById('device-type-chart').appendChild(typeCtx);
+            new Chart(typeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['视频设备', '音频设备', '存储设备', '医疗设备', '其他'],
+                    datasets: [{
+                        label: '数量',
+                        data: [8, 5, 4, 3, 4],
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 设备位置图表
+            const locationCtx = document.createElement('canvas');
+            document.getElementById('device-location-chart').appendChild(locationCtx);
+            new Chart(locationCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['救护车A', '救护车B', '救护车C', '医院', '急救现场'],
+                    datasets: [{
+                        data: [6, 5, 4, 5, 4],
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(217, 70, 239, 0.7)',
+                            'rgba(236, 72, 153, 0.7)',
+                            'rgba(244, 63, 94, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(217, 70, 239, 1)',
+                            'rgba(236, 72, 153, 1)',
+                            'rgba(244, 63, 94, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+        }
+
+        // 刷新设备列表
+        function refreshDeviceList() {
+            alert('正在开发中：刷新设备列表');
+        }
+
+        // 过滤设备
+        function filterDevices(group) {
+            const tabs = document.querySelectorAll('.group-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            alert('正在开发中：按分组筛选设备 - ' + group);
+        }
+
+        // 应用设备筛选
+        function applyDeviceFilters() {
+            const search = document.getElementById('device-search').value;
+            const status = document.getElementById('status-filter').value;
+            const location = document.getElementById('location-filter').value;
+            
+            alert(`正在开发中：应用筛选条件 - 搜索: ${search}, 状态: ${status}, 位置: ${location}`);
+        }
+
+        // 显示添加设备模态框
+        function showAddDeviceModal() {
+            document.getElementById('add-device-modal').classList.remove('hidden');
+        }
+
+        // 隐藏添加设备模态框
+        function hideAddDeviceModal() {
+            document.getElementById('add-device-modal').classList.add('hidden');
+        }
+
+        // 显示添加分组模态框
+        function showAddGroupModal() {
+            alert('正在开发中：添加分组功能');
+        }
+
+        // 查看设备详情
+        function viewDevice(deviceId) {
+            document.getElementById('device-detail-modal').classList.remove('hidden');
+            // 模拟加载设备详情数据
+            document.getElementById('detail-id').textContent = deviceId;
+        }
+
+        // 隐藏设备详情模态框
+        function hideDeviceDetailModal() {
+            document.getElementById('device-detail-modal').classList.add('hidden');
+        }
+
+        // 编辑设备
+        function editDevice(deviceId) {
+            alert('正在开发中：编辑设备 ' + deviceId);
+        }
+
+        // 显示编辑设备模态框
+        function showEditDeviceModal() {
+            alert('正在开发中：编辑设备信息');
+        }
+
+        // 控制设备
+        function controlDevice(action) {
+            alert('正在开发中：执行设备控制 - ' + action);
+        }
+
+        // 批量控制设备
+        function batchControl(action) {
+            const selected = getSelectedDevices();
+            if (selected.length === 0) {
+                alert('请先选择要操作的设备');
+                return;
+            }
+            alert('正在开发中：批量' + action + '设备 - ' + selected.join(', '));
+        }
+
+        // 批量移动分组
+        function batchMoveToGroup() {
+            const selected = getSelectedDevices();
+            if (selected.length === 0) {
+                alert('请先选择要移动的设备');
+                return;
+            }
+            alert('正在开发中：批量移动分组 - ' + selected.join(', '));
+        }
+
+        // 批量删除设备
+        function batchDeleteDevices() {
+            const selected = getSelectedDevices();
+            if (selected.length === 0) {
+                alert('请先选择要删除的设备');
+                return;
+            }
+            if (confirm(`确定要删除选中的 ${selected.length} 台设备吗？`)) {
+                alert('正在开发中：批量删除设备 - ' + selected.join(', '));
+            }
+        }
+
+        // 删除当前设备
+        function deleteCurrentDevice() {
+            if (confirm('确定要删除这台设备吗？')) {
+                alert('正在开发中：删除当前设备');
+            }
+        }
+
+        // 获取选中的设备ID
+        function getSelectedDevices() {
+            const checkboxes = document.querySelectorAll('#device-table-body input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(checkbox => {
+                return checkbox.closest('tr').querySelector('td:nth-child(2)').textContent;
+            });
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
