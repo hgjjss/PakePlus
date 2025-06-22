@@ -1,0 +1,862 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/registration.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>参保登记管理 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .table-row:hover {
+            background-color: #f1f5f9;
+        }
+        .checkbox-cell {
+            width: 40px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #4f46e5;
+            border: 1px solid #4f46e5;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #f5f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        /* 微交互动效 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse-animation {
+            animation: pulse 0.5s;
+        }
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        .ripple:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">参保登记管理</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex flex-wrap justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2 md:mb-0">参保登记管理</h1>
+                <div class="btn-group">
+                    <button id="importBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-import mr-2"></i>导入数据
+                    </button>
+                    <button id="exportBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-export mr-2"></i>导出数据
+                    </button>
+                    <button id="printBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-print mr-2"></i>打印
+                    </button>
+                    <button id="newBtn" class="btn-primary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white">
+                        <i class="fas fa-plus mr-2"></i>新增登记
+                    </button>
+                </div>
+            </div>
+
+            <!-- 批量操作和搜索区域 -->
+            <div class="bg-white rounded-xl p-4 mb-6 card">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <!-- 批量操作 -->
+                    <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="selectAll" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="selectAll" class="ml-2 text-sm text-gray-700">全选</label>
+                        </div>
+                        <select id="batchAction" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">批量操作</option>
+                            <option value="approve">批量通过</option>
+                            <option value="reject">批量拒绝</option>
+                            <option value="delete">批量删除</option>
+                        </select>
+                        <button id="applyBatchAction" class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed ripple" disabled>
+                            应用
+                        </button>
+                    </div>
+
+                    <!-- 搜索过滤 -->
+                    <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="搜索姓名/身份证号..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部状态</option>
+                            <option value="active">已通过</option>
+                            <option value="pending">待审核</option>
+                            <option value="rejected">已拒绝</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 参保登记表格 -->
+            <div class="bg-white rounded-xl overflow-hidden card">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="checkbox-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    姓名
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    身份证号
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    参保类型
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    登记日期
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="registrationTableBody">
+                            <!-- 示例数据行 -->
+                            <tr class="table-row">
+                                <td class="checkbox-cell px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-id="1">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10 w-10 rounded-full" src="https://picsum.photos/40/40?random=1" alt="">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">张三</div>
+                                            <div class="text-sm text-gray-500">男 · 35岁</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">320************018</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">城镇职工养老保险</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-05</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="status-badge status-active">已通过</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-3 action-btn" title="编辑"><i class="fas fa-edit"></i></button>
+                                    <button class="text-red-500 hover:text-red-700 action-btn" title="删除"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="table-row">
+                                <td class="checkbox-cell px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-id="2">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10 w-10 rounded-full" src="https://picsum.photos/40/40?random=2" alt="">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">李四</div>
+                                            <div class="text-sm text-gray-500">男 · 28岁</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">330************127</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">城乡居民养老保险</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-06</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="status-badge status-pending">待审核</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-3 action-btn" title="编辑"><i class="fas fa-edit"></i></button>
+                                    <button class="text-red-500 hover:text-red-700 action-btn" title="删除"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="table-row">
+                                <td class="checkbox-cell px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-id="3">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10 w-10 rounded-full" src="https://picsum.photos/40/40?random=3" alt="">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">王五</div>
+                                            <div class="text-sm text-gray-500">女 · 42岁</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">340************235</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">医疗保险</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-07</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="status-badge status-rejected">已拒绝</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-3 action-btn" title="编辑"><i class="fas fa-edit"></i></button>
+                                    <button class="text-red-500 hover:text-red-700 action-btn" title="删除"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            上一页
+                        </a>
+                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            下一页
+                        </a>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">124</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">上一页</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    3
+                                </a>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    ...
+                                </span>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    8
+                                </a>
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">下一页</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增登记模态框 -->
+    <div id="newRegistrationModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">新增参保登记</h3>
+                            <form class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="name" class="block text-sm font-medium text-gray-700">姓名</label>
+                                        <input type="text" id="name" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <div>
+                                        <label for="gender" class="block text-sm font-medium text-gray-700">性别</label>
+                                        <select id="gender" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                            <option value="male">男</option>
+                                            <option value="female">女</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="idNumber" class="block text-sm font-medium text-gray-700">身份证号</label>
+                                        <input type="text" id="idNumber" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <div>
+                                        <label for="birthDate" class="block text-sm font-medium text-gray-700">出生日期</label>
+                                        <input type="date" id="birthDate" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <div>
+                                        <label for="phone" class="block text-sm font-medium text-gray-700">手机号码</label>
+                                        <input type="tel" id="phone" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                    <div>
+                                        <label for="insuranceType" class="block text-sm font-medium text-gray-700">参保类型</label>
+                                        <select id="insuranceType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                            <option value="urban">城镇职工养老保险</option>
+                                            <option value="rural">城乡居民养老保险</option>
+                                            <option value="medical">医疗保险</option>
+                                            <option value="unemployment">失业保险</option>
+                                            <option value="injury">工伤保险</option>
+                                            <option value="maternity">生育保险</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="address" class="block text-sm font-medium text-gray-700">居住地址</label>
+                                    <input type="text" id="address" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="remark" class="block text-sm font-medium text-gray-700">备注</label>
+                                    <textarea id="remark" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="submitRegistration" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ripple">
+                        提交
+                    </button>
+                    <button type="button" id="cancelNewRegistration" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入数据模态框 -->
+    <div id="importModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">导入参保数据</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-center p-6 border-2 border-dashed border-gray-300 rounded-md">
+                                    <div class="text-center">
+                                        <i class="fas fa-file-upload text-gray-400 text-3xl mb-3"></i>
+                                        <p class="text-sm text-gray-600 mb-1">将文件拖放到这里，或</p>
+                                        <button type="button" class="text-blue-600 hover:text-blue-700 font-medium">浏览文件</button>
+                                        <p class="text-xs text-gray-500 mt-2">支持Excel、CSV格式（最大10MB）</p>
+                                        <input type="file" class="hidden" accept=".xlsx,.xls,.csv">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <input id="overrideExisting" name="overrideExisting" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label for="overrideExisting" class="ml-2 block text-sm text-gray-700">覆盖现有记录（如有重复身份证号）</label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="button" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                        <i class="fas fa-download mr-1"></i>下载导入模板
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmImport" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ripple">
+                        开始导入
+                    </button>
+                    <button type="button" id="cancelImport" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div id="deleteConfirmModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">删除参保记录</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">您确定要删除选中的参保记录吗？此操作不可撤销。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmDelete" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm ripple">
+                        删除
+                    </button>
+                    <button type="button" id="cancelDelete" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作成功提示 -->
+    <div id="successToast" class="fixed right-5 top-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 hidden" role="alert">
+        <div class="flex">
+            <div class="py-1"><i class="fas fa-check-circle text-green-500"></i></div>
+            <div class="ml-3">
+                <p class="text-sm" id="successMessage">操作成功！</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <div class="-mx-1.5 -my-1.5">
+                    <button type="button" class="close-toast inline-flex rounded-md p-1.5 text-green-500 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <span class="sr-only">关闭</span>
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 批量选择功能
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            const applyBatchActionBtn = document.getElementById('applyBatchAction');
+
+            selectAllCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBatchActionButton();
+            });
+
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!this.checked) {
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                    updateBatchActionButton();
+                });
+            });
+
+            function updateBatchActionButton() {
+                const checkedCount = Array.from(rowCheckboxes).filter(cb => cb.checked).length;
+                applyBatchActionBtn.disabled = checkedCount === 0;
+                if (checkedCount > 0) {
+                    applyBatchActionBtn.textContent = `应用 (${checkedCount})`;
+                } else {
+                    applyBatchActionBtn.textContent = '应用';
+                }
+            }
+
+            // 批量操作
+            applyBatchActionBtn.addEventListener('click', function() {
+                const action = document.getElementById('batchAction').value;
+                if (!action) {
+                    showToast('请选择批量操作类型');
+                    return;
+                }
+
+                const selectedRows = Array.from(rowCheckboxes).filter(cb => cb.checked);
+                const selectedIds = selectedRows.map(cb => cb.dataset.id);
+
+                // 如果是删除操作，显示确认对话框
+                if (action === 'delete') {
+                    showDeleteConfirmModal(selectedIds);
+                    return;
+                }
+
+                // 模拟API调用
+                console.log(`执行批量操作: ${action}, 选中ID: ${selectedIds.join(', ')}`);
+                
+                // 显示成功提示
+                let actionText = '';
+                switch(action) {
+                    case 'approve': actionText = '通过'; break;
+                    case 'reject': actionText = '拒绝'; break;
+                    default: actionText = action;
+                }
+                
+                showToast(`已成功对 ${selectedIds.length} 条记录执行${actionText}操作`);
+                
+                // 重置选择
+                selectAllCheckbox.checked = false;
+                rowCheckboxes.forEach(cb => cb.checked = false);
+                updateBatchActionButton();
+            });
+
+            // 搜索过滤功能
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusValue = statusFilter.value;
+                
+                document.querySelectorAll('#registrationTableBody tr').forEach(row => {
+                    const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const idNumber = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const status = row.querySelector('td:nth-child(6) span').classList.contains(`status-${statusValue}`);
+                    
+                    const matchesSearch = name.includes(searchTerm) || idNumber.includes(searchTerm);
+                    const matchesStatus = !statusValue || status;
+                    
+                    row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+                });
+            }
+
+            searchInput.addEventListener('input', filterTable);
+            statusFilter.addEventListener('change', filterTable);
+
+            // 新增登记模态框
+            const newBtn = document.getElementById('newBtn');
+            const newRegistrationModal = document.getElementById('newRegistrationModal');
+            const cancelNewRegistration = document.getElementById('cancelNewRegistration');
+            const submitRegistration = document.getElementById('submitRegistration');
+
+            newBtn.addEventListener('click', function() {
+                newRegistrationModal.classList.remove('hidden');
+            });
+
+            cancelNewRegistration.addEventListener('click', function() {
+                newRegistrationModal.classList.add('hidden');
+            });
+
+            submitRegistration.addEventListener('click', function() {
+                // 模拟表单验证和提交
+                const name = document.getElementById('name').value;
+                const idNumber = document.getElementById('idNumber').value;
+                
+                if (!name || !idNumber) {
+                    alert('请填写姓名和身份证号');
+                    return;
+                }
+                
+                // 显示加载状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>提交中';
+                this.disabled = true;
+                
+                // 模拟异步提交
+                setTimeout(() => {
+                    // 恢复按钮状态
+                    this.innerHTML = '提交';
+                    this.disabled = false;
+                    
+                    // 关闭模态框
+                    newRegistrationModal.classList.add('hidden');
+                    
+                    // 显示成功提示
+                    showToast('参保登记信息添加成功！');
+                }, 1000);
+            });
+
+            // 导入功能
+            const importBtn = document.getElementById('importBtn');
+            const importModal = document.getElementById('importModal');
+            const cancelImport = document.getElementById('cancelImport');
+            const confirmImport = document.getElementById('confirmImport');
+
+            importBtn.addEventListener('click', function() {
+                importModal.classList.remove('hidden');
+            });
+
+            cancelImport.addEventListener('click', function() {
+                importModal.classList.add('hidden');
+            });
+
+            confirmImport.addEventListener('click', function() {
+                // 模拟导入处理
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导入中';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '开始导入';
+                    this.disabled = false;
+                    importModal.classList.add('hidden');
+                    showToast('数据导入成功！共导入15条记录。');
+                }, 2000);
+            });
+
+            // 导出功能
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function() {
+                // 模拟导出数据
+                const data = [
+                    { name: '张三', idNumber: '320************018', type: '城镇职工养老保险', date: '2025-06-05', status: '已通过' },
+                    { name: '李四', idNumber: '330************127', type: '城乡居民养老保险', date: '2025-06-06', status: '待审核' },
+                    { name: '王五', idNumber: '340************235', type: '医疗保险', date: '2025-06-07', status: '已拒绝' }
+                ];
+                
+                // 显示加载状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导出中';
+                
+                setTimeout(() => {
+                    // 恢复按钮状态
+                    this.innerHTML = '<i class="fas fa-file-export mr-2"></i>导出数据';
+                    
+                    // 调用全局导出方法
+                    if (window.exportData) {
+                        window.exportData(data, 'csv', '参保登记数据');
+                        showToast('数据导出成功！');
+                    } else {
+                        showToast('导出功能正在开发中');
+                    }
+                }, 1000);
+            });
+            
+            // 打印功能
+            const printBtn = document.getElementById('printBtn');
+            printBtn.addEventListener('click', function() {
+                showToast('打印功能正在开发中');
+            });
+
+            // 删除确认模态框
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            const confirmDelete = document.getElementById('confirmDelete');
+            const cancelDelete = document.getElementById('cancelDelete');
+            let pendingDeleteIds = [];
+
+            function showDeleteConfirmModal(ids) {
+                pendingDeleteIds = ids;
+                deleteConfirmModal.classList.remove('hidden');
+            }
+
+            confirmDelete.addEventListener('click', function() {
+                // 模拟删除操作
+                console.log('删除ID:', pendingDeleteIds);
+                
+                // 显示加载状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>删除中';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '删除';
+                    this.disabled = false;
+                    deleteConfirmModal.classList.add('hidden');
+                    showToast(`成功删除 ${pendingDeleteIds.length} 条记录！`);
+                    
+                    // 重置选择
+                    selectAllCheckbox.checked = false;
+                    rowCheckboxes.forEach(cb => cb.checked = false);
+                    updateBatchActionButton();
+                }, 1000);
+            });
+
+            cancelDelete.addEventListener('click', function() {
+                deleteConfirmModal.classList.add('hidden');
+            });
+
+            // 表格行删除按钮
+            document.querySelectorAll('#registrationTableBody .fa-trash').forEach(icon => {
+                icon.closest('button').addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const checkbox = row.querySelector('.row-checkbox');
+                    const id = checkbox.dataset.id;
+                    showDeleteConfirmModal([id]);
+                });
+            });
+
+            // 点击模态框外部关闭
+            const modals = [newRegistrationModal, importModal, deleteConfirmModal];
+            window.addEventListener('click', function(event) {
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+
+            // 消息提示功能
+            const successToast = document.getElementById('successToast');
+            const successMessage = document.getElementById('successMessage');
+            
+            document.querySelectorAll('.close-toast').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.closest('[role="alert"]').classList.add('hidden');
+                });
+            });
+
+            function showToast(message, duration = 3000) {
+                successMessage.textContent = message;
+                successToast.classList.remove('hidden');
+                successToast.classList.add('pulse-animation');
+                
+                // 自动关闭
+                setTimeout(() => {
+                    successToast.classList.add('hidden');
+                }, duration);
+            }
+
+            // 按钮波纹效果
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const x = e.clientX - e.target.getBoundingClientRect().left;
+                    const y = e.clientY - e.target.getBoundingClientRect().top;
+
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+
+                    this.appendChild(ripple);
+
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
