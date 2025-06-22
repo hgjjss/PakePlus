@@ -1,0 +1,934 @@
+
+<!-- emergency_av_management_server/frontend/vehicle_management.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 车载设备管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-online {
+            background: #10b981;
+        }
+        .status-offline {
+            background: #ef4444;
+        }
+        .status-warning {
+            background: #f59e0b;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        #map {
+            height: 400px;
+            border-radius: 0.5rem;
+            z-index: 0;
+        }
+        .vehicle-card {
+            transition: all 0.3s ease;
+        }
+        .vehicle-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .marker-cluster-small {
+            background-color: rgba(181, 226, 140, 0.6);
+        }
+        .marker-cluster-small div {
+            background-color: rgba(110, 204, 57, 0.6);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+                急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">车载设备管理</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshVehicleList()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 车辆位置地图 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">车辆实时位置</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="centerMap()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-crosshairs mr-1"></i>重新定位
+                        </button>
+                        <button onclick="toggleTrafficLayer()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-traffic-light mr-1"></i>交通状况
+                        </button>
+                        <button onclick="exportMap()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                            <i class="fas fa-download mr-1"></i>导出地图
+                        </button>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </div>
+            
+            <!-- 车辆状态概览 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">在线车辆</p>
+                            <p class="text-3xl font-bold mt-2">3</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">离线车辆</p>
+                            <p class="text-3xl font-bold mt-2">0</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i class="fas fa-exclamation-circle text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">执行任务</p>
+                            <p class="text-3xl font-bold mt-2">2</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-ambulance text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">待命车辆</p>
+                            <p class="text-3xl font-bold mt-2">1</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-parking text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 车辆设备管理 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex space-x-4">
+                        <button onclick="switchTab('all')" class="tab-button active px-4 py-2 font-medium">
+                            全部车辆
+                        </button>
+                        <button onclick="switchTab('ambulance-a')" class="tab-button px-4 py-2 font-medium">
+                            救护车A
+                        </button>
+                        <button onclick="switchTab('ambulance-b')" class="tab-button px-4 py-2 font-medium">
+                            救护车B
+                        </button>
+                        <button onclick="switchTab('ambulance-c')" class="tab-button px-4 py-2 font-medium">
+                            救护车C
+                        </button>
+                    </div>
+                    <button onclick="showAddVehicleModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>添加车辆
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">车辆ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">车牌号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">车辆类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">当前位置</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后活动</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicle-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr class="vehicle-card">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AMB-001</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">京A12345</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">急救车</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">北京市朝阳区建国路</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">
+                                        执行任务
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2分钟前</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewVehicle('AMB-001')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="controlVehicle('AMB-001')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="vehicle-card">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AMB-002</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">京B67890</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">急救车</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">北京市海淀区中关村</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">
+                                        执行任务
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5分钟前</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewVehicle('AMB-002')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="controlVehicle('AMB-002')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="vehicle-card">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AMB-003</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">京C54321</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">急救车</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">北京市急救中心</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-500 text-white">
+                                        待命
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10分钟前</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewVehicle('AMB-003')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="controlVehicle('AMB-003')" class="text-gray-600 hover:text-gray-900">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 车载设备联动控制 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">车载设备联动控制</h3>
+                    <button onclick="refreshDevices()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-sync-alt mr-1"></i>刷新状态
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 救护车A设备 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-4">
+                            <h4 class="font-medium text-gray-800">救护车A设备</h4>
+                            <span class="ml-auto px-2 py-1 bg-green-100 text-green-800 text-xs rounded">在线</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">视频记录仪</p>
+                                    <p class="text-xs text-gray-500">DEV-001</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">音频采集器</p>
+                                    <p class="text-xs text-gray-500">DEV-002</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">生命体征监测</p>
+                                    <p class="text-xs text-gray-500">DEV-003</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <button onclick="controlAllDevices('AMB-001', 'start')" class="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                                <i class="fas fa-play mr-2"></i>全部启动
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 救护车B设备 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-4">
+                            <h4 class="font-medium text-gray-800">救护车B设备</h4>
+                            <span class="ml-auto px-2 py-1 bg-green-100 text-green-800 text-xs rounded">在线</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">视频记录仪</p>
+                                    <p class="text-xs text-gray-500">DEV-004</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">音频采集器</p>
+                                    <p class="text-xs text-gray-500">DEV-005</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">生命体征监测</p>
+                                    <p class="text-xs text-gray-500">DEV-006</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <button onclick="controlAllDevices('AMB-002', 'start')" class="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                                <i class="fas fa-play mr-2"></i>全部启动
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 救护车C设备 -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-4">
+                            <h4 class="font-medium text-gray-800">救护车C设备</h4>
+                            <span class="ml-auto px-2 py-1 bg-green-100 text-green-800 text-xs rounded">在线</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">视频记录仪</p>
+                                    <p class="text-xs text-gray-500">DEV-007</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">音频采集器</p>
+                                    <p class="text-xs text-gray-500">DEV-008</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">生命体征监测</p>
+                                    <p class="text-xs text-gray-500">DEV-009</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <button onclick="controlAllDevices('AMB-003', 'start')" class="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                                <i class="fas fa-play mr-2"></i>全部启动
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 添加车辆模态框 -->
+            <div id="add-vehicle-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-2xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">添加新车辆</h3>
+                        <button onclick="hideAddVehicleModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="add-vehicle-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="vehicle-id" class="block text-sm font-medium text-gray-700 mb-1">车辆ID</label>
+                                    <input type="text" id="vehicle-id" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="vehicle-plate" class="block text-sm font-medium text-gray-700 mb-1">车牌号</label>
+                                    <input type="text" id="vehicle-plate" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="vehicle-type" class="block text-sm font-medium text-gray-700 mb-1">车辆类型</label>
+                                    <select id="vehicle-type" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">选择车辆类型</option>
+                                        <option value="ambulance">急救车</option>
+                                        <option value="transport">转运车</option>
+                                        <option value="command">指挥车</option>
+                                        <option value="other">其他</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="vehicle-status" class="block text-sm font-medium text-gray-700 mb-1">初始状态</label>
+                                    <select id="vehicle-status" required 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="standby">待命</option>
+                                        <option value="mission">执行任务</option>
+                                        <option value="maintenance">维护中</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="vehicle-description" class="block text-sm font-medium text-gray-700 mb-1">车辆描述</label>
+                                <textarea id="vehicle-description" rows="3" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button type="button" onclick="hideAddVehicleModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                    取消
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                    <i class="fas fa-save mr-2"></i>保存车辆
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 车辆详情模态框 -->
+            <div id="vehicle-detail-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg w-11/12 max-w-4xl max-h-screen overflow-auto">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">车辆详情</h3>
+                        <button onclick="hideVehicleDetailModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2">
+                                <h4 class="font-medium text-gray-800 mb-4">基本信息</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">车辆ID</p>
+                                            <p id="detail-vehicle-id" class="font-medium">AMB-001</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">车牌号</p>
+                                            <p id="detail-vehicle-plate" class="font-medium">京A12345</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">车辆类型</p>
+                                            <p id="detail-vehicle-type" class="font-medium">急救车</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">当前状态</p>
+                                            <p id="detail-vehicle-status" class="font-medium">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">执行任务</span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">GPS位置</p>
+                                            <p id="detail-vehicle-location" class="font-medium">北京市朝阳区建国路88号</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">最后活动</p>
+                                            <p id="detail-vehicle-last-active" class="font-medium">2025-06-12 14:30:22</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">添加时间</p>
+                                            <p id="detail-vehicle-created" class="font-medium">2025-01-15 09:15:00</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">负责人</p>
+                                            <p id="detail-vehicle-operator" class="font-medium">张医生</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">车载设备</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-100">
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备ID</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备名称</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">DEV-001</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">视频记录仪</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">视频采集</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">在线</span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <button onclick="viewDevice('DEV-001')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button onclick="controlDevice('DEV-001')" class="text-gray-600 hover:text-gray-900">
+                                                            <i class="fas fa-cog"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">DEV-002</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">音频采集器</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">音频采集</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">在线</span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <button onclick="viewDevice('DEV-002')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button onclick="controlDevice('DEV-002')" class="text-gray-600 hover:text-gray-900">
+                                                            <i class="fas fa-cog"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">DEV-003</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">生命体征监测</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">医疗设备</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500 text-white">在线</span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <button onclick="viewDevice('DEV-003')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button onclick="controlDevice('DEV-003')" class="text-gray-600 hover:text-gray-900">
+                                                            <i class="fas fa-cog"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">车辆描述</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p id="detail-vehicle-description">这是一辆配备完善的高端急救车，配备有高清视频记录系统、音频采集设备和生命体征监测设备，能够实时传输急救现场数据。</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-4">车辆控制</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                                    <button onclick="controlCurrentVehicle('restart')" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-sync-alt mr-2"></i>重启车辆系统
+                                    </button>
+                                    <button onclick="controlCurrentVehicle('shutdown')" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                                        <i class="fas fa-power-off mr-2"></i>关闭车辆系统
+                                    </button>
+                                    <button onclick="controlCurrentVehicle('update')" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                        <i class="fas fa-cloud-download-alt mr-2"></i>更新系统固件
+                                    </button>
+                                    <button onclick="showEditVehicleModal()" class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                                        <i class="fas fa-edit mr-2"></i>编辑车辆信息
+                                    </button>
+                                    <button onclick="deleteCurrentVehicle()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                        <i class="fas fa-trash-alt mr-2"></i>删除车辆
+                                    </button>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">设备联动</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                                    <button onclick="controlAllDevices('current', 'start')" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                        <i class="fas fa-play mr-2"></i>启动所有设备
+                                    </button>
+                                    <button onclick="controlAllDevices('current', 'stop')" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                        <i class="fas fa-stop mr-2"></i>停止所有设备
+                                    </button>
+                                    <button onclick="controlAllDevices('current', 'record')" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-video mr-2"></i>开始录制
+                                    </button>
+                                    <button onclick="controlAllDevices('current', 'transmit')" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                        <i class="fas fa-broadcast-tower mr-2"></i>实时传输
+                                    </button>
+                                </div>
+                                
+                                <h4 class="font-medium text-gray-800 mt-6 mb-4">车辆日志</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg h-64 overflow-y-auto">
+                                    <div class="space-y-3">
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 14:30:22</p>
+                                            <p class="text-gray-600">车辆位置更新：北京市朝阳区建国路88号</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 12:15:08</p>
+                                            <p class="text-gray-600">视频记录仪启动，开始录制急救过程</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 10:20:45</p>
+                                            <p class="text-gray-600">生命体征监测设备连接成功</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-12 08:05:33</p>
+                                            <p class="text-gray-600">车辆系统启动完成</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="font-medium">2025-06-11 23:40:12</p>
+                                            <p class="text-gray-600">车辆系统关闭</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/leaflet.markercluster.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 初始化地图
+            initMap();
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 初始化表单提交
+            document.getElementById('add-vehicle-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('正在开发中：添加新车辆功能');
+                hideAddVehicleModal();
+            });
+        });
+
+        // 初始化地图
+        let map;
+        let markers = L.markerClusterGroup();
+        let trafficLayer;
+
+        function initMap() {
+            // 创建地图实例
+            map = L.map('map').setView([39.9042, 116.4074], 12);
+
+            // 添加OpenStreetMap底图
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // 添加车辆标记
+            const vehicleLocations = [
+                { id: 'AMB-001', name: '救护车A', plate: '京A12345', lat: 39.9087, lng: 116.3975, status: 'mission' },
+                { id: 'AMB-002', name: '救护车B', plate: '京B67890', lat: 39.9834, lng: 116.3164, status: 'mission' },
+                { id: 'AMB-003', name: '救护车C', plate: '京C54321', lat: 39.9346, lng: 116.3327, status: 'standby' }
+            ];
+
+            vehicleLocations.forEach(vehicle => {
+                const marker = L.marker([vehicle.lat, vehicle.lng], {
+                    icon: L.divIcon({
+                        className: 'vehicle-marker',
+                        html: `<div class="vehicle-marker-inner ${vehicle.status === 'mission' ? 'mission' : 'standby'}">
+                                  <i class="fas fa-ambulance"></i>
+                               </div>`,
+                        iconSize: [30, 30]
+                    })
+                }).bindPopup(`
+                    <div class="vehicle-popup">
+                        <h4>${vehicle.name}</h4>
+                        <p>车牌号: ${vehicle.plate}</p>
+                        <p>状态: ${vehicle.status === 'mission' ? '执行任务' : '待命'}</p>
+                        <button onclick="viewVehicle('${vehicle.id}')" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded text-sm">
+                            查看详情
+                        </button>
+                    </div>
+                `);
+                markers.addLayer(marker);
+            });
+
+            map.addLayer(markers);
+        }
+
+        // 重新定位地图中心
+        function centerMap() {
+            map.setView([39.9042, 116.4074], 12);
+        }
+
+        // 切换交通状况图层
+        function toggleTrafficLayer() {
+            if (!trafficLayer) {
+                trafficLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/traffic/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                event.target.innerHTML = '<i class="fas fa-traffic-light mr-1"></i>隐藏交通';
+            } else {
+                map.removeLayer(trafficLayer);
+                trafficLayer = null;
+                event.target.innerHTML = '<i class="fas fa-traffic-light mr-1"></i>交通状况';
+            }
+        }
+
+        // 导出地图
+        function exportMap() {
+            alert('正在开发中：导出地图功能');
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tabElement => tabElement.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 模拟根据标签筛选车辆
+            alert('正在开发中：按标签筛选车辆 - ' + tab);
+        }
+
+        // 刷新车辆列表
+        function refreshVehicleList() {
+            alert('正在开发中：刷新车辆列表');
+        }
+
+        // 刷新设备状态
+        function refreshDevices() {
+            alert('正在开发中：刷新设备状态');
+        }
+
+        // 显示添加车辆模态框
+        function showAddVehicleModal() {
+            document.getElementById('add-vehicle-modal').classList.remove('hidden');
+        }
+
+        // 隐藏添加车辆模态框
+        function hideAddVehicleModal() {
+            document.getElementById('add-vehicle-modal').classList.add('hidden');
+        }
+
+        // 查看车辆详情
+        function viewVehicle(vehicleId) {
+            document.getElementById('vehicle-detail-modal').classList.remove('hidden');
+            // 模拟加载车辆详情数据
+            document.getElementById('detail-vehicle-id').textContent = vehicleId;
+        }
+
+        // 隐藏车辆详情模态框
+        function hideVehicleDetailModal() {
+            document.getElementById('vehicle-detail-modal').classList.add('hidden');
+        }
+
+        // 控制车辆
+        function controlVehicle(vehicleId) {
+            alert('正在开发中：控制车辆 ' + vehicleId);
+        }
+
+        // 控制当前车辆
+        function controlCurrentVehicle(action) {
+            alert('正在开发中：执行车辆控制 - ' + action);
+        }
+
+        // 控制所有设备
+        function controlAllDevices(vehicleId, action) {
+            alert('正在开发中：控制 ' + vehicleId + ' 的所有设备 - ' + action);
+        }
+
+        // 查看设备详情
+        function viewDevice(deviceId) {
+            alert('正在开发中：查看设备详情 ' + deviceId);
+        }
+
+        // 控制设备
+        function controlDevice(deviceId) {
+            alert('正在开发中：控制设备 ' + deviceId);
+        }
+
+        // 删除当前车辆
+        function deleteCurrentVehicle() {
+            if (confirm('确定要删除这辆救护车吗？')) {
+                alert('正在开发中：删除当前车辆');
+            }
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
