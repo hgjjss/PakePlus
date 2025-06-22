@@ -1,0 +1,541 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/payment.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>缴费管理 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .payment-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-paid {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-unpaid {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .status-partial {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #991b1b;
+            animation: pulse 2s infinite;
+        }
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e7eb;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">缴费管理</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">缴费管理</h1>
+                <div class="flex space-x-3">
+                    <button id="batchPaymentBtn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 action-btn">
+                        <i class="fas fa-money-bill-wave mr-2"></i>批量缴费
+                    </button>
+                    <button id="exportBtn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 action-btn">
+                        <i class="fas fa-file-export mr-2"></i>导出
+                    </button>
+                    <button id="refreshBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 action-btn">
+                        <i class="fas fa-sync-alt mr-2"></i>刷新
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">总缴费金额</p>
+                            <p class="text-2xl font-bold text-gray-800">¥ 245,680</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-coins text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">
+                        <i class="fas fa-arrow-up mr-1"></i>12.5% 较上月
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">待缴费金额</p>
+                            <p class="text-2xl font-bold text-gray-800">¥ 38,420</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-red-600">
+                        <i class="fas fa-arrow-up mr-1"></i>8.3% 较上月
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">已缴费人数</p>
+                            <p class="text-2xl font-bold text-gray-800">1,245</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-user-check text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600">
+                        <i class="fas fa-arrow-up mr-1"></i>15.2% 较上月
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">待缴费人数</p>
+                            <p class="text-2xl font-bold text-gray-800">86</p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-user-clock text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-yellow-600">
+                        <i class="fas fa-arrow-down mr-1"></i>5.7% 较上月
+                    </div>
+                </div>
+            </div>
+
+            <!-- 过滤和搜索区域 -->
+            <div class="bg-white rounded-xl p-4 mb-6 card">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <!-- 时间筛选 -->
+                    <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                        <div>
+                            <label for="dateRange" class="sr-only">时间范围</label>
+                            <select id="dateRange" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="today">今日</option>
+                                <option value="week" selected>本周</option>
+                                <option value="month">本月</option>
+                                <option value="quarter">本季度</option>
+                                <option value="year">本年</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </div>
+                        <div id="customDateRange" class="hidden flex items-center space-x-2">
+                            <input type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span>至</span>
+                            <input type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- 搜索和状态过滤 -->
+                    <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="搜索姓名/身份证号..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部状态</option>
+                            <option value="paid">已缴费</option>
+                            <option value="unpaid">未缴费</option>
+                            <option value="partial">部分缴费</option>
+                            <option value="overdue">已逾期</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 缴费记录表格 -->
+            <div class="bg-white rounded-xl overflow-hidden card">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    姓名
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    身份证号
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    参保类型
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    应缴金额
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    缴费进度
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    缴费状态
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    截止日期
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="paymentTableBody">
+                            <!-- 示例数据行 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10 w-10 rounded-full" src="https://picsum.photos/40/40?random=1" alt="">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">张三</div>
+                                            <div class="text-sm text-gray-500">男 · 35岁</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">320************018</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">城镇职工养老保险</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 1,245.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="w-full">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill bg-green-500" style="width: 100%"></div>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">已缴 ¥1,245.00</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="payment-status status-paid">已缴费</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-15</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-3 action-btn"><i class="fas fa-print"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            <!-- 更多数据行... -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            上一页
+                        </a>
+                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            下一页
+                        </a>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">86</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">上一页</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    3
+                                </a>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    ...
+                                </span>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    9
+                                </a>
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">下一页</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 缴费详情模态框 -->
+    <div id="paymentDetailModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">缴费详情</h3>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">姓名</p>
+                                        <p class="text-sm font-medium text-gray-900">张三</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">身份证号</p>
+                                        <p class="text-sm font-medium text-gray-900">320************018</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">参保类型</p>
+                                        <p class="text-sm font-medium text-gray-900">城镇职工养老保险</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">缴费基数</p>
+                                        <p class="text-sm font-medium text-gray-900">¥ 4,500.00</p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">缴费明细</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600">养老保险</span>
+                                            <span class="text-sm font-medium text-gray-900">¥ 720.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600">医疗保险</span>
+                                            <span class="text-sm font-medium text-gray-900">¥ 360.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600">失业保险</span>
+                                            <span class="text-sm font-medium text-gray-900">¥ 45.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600">工伤保险</span>
+                                            <span class="text-sm font-medium text-gray-900">¥ 22.50</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-600">生育保险</span>
+                                            <span class="text-sm font-medium text-gray-900">¥ 45.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center border-t border-gray-200 pt-2">
+                                            <span class="text-sm font-medium text-gray-900">合计</span>
+                                            <span class="text-sm font-medium text-gray-900">¥ 1,192.50</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">缴费记录</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">缴费期号</th>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额</th>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">缴费日期</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <tr>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">202506</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">¥ 1,192.50</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                                        <span class="payment-status status-paid">已缴费</span>
+                                                    </td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">2025-06-10</td>
+                                                </tr>
+                                                <!-- 更多记录... -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        打印缴费凭证
+                    </button>
+                    <button type="button" id="closeDetailModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 时间范围选择
+            const dateRange = document.getElementById('dateRange');
+            const customDateRange = document.getElementById('customDateRange');
+            
+            dateRange.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customDateRange.classList.remove('hidden');
+                } else {
+                    customDateRange.classList.add('hidden');
+                }
+            });
+
+            // 搜索过滤功能
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusValue = statusFilter.value;
+                
+                document.querySelectorAll('#paymentTableBody tr').forEach(row => {
+                    const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    const idNumber = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const status = row.querySelector('td:nth-child(6) span').classList.contains(`status-${statusValue}`);
+                    
+                    const matchesSearch = name.includes(searchTerm) || idNumber.includes(searchTerm);
+                    const matchesStatus = !statusValue || status;
+                    
+                    row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+                });
+            }
+            
+            searchInput.addEventListener('input', filterTable);
+            statusFilter.addEventListener('change', filterTable);
+
+            // 刷新按钮
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.addEventListener('click', function() {
+                // 模拟刷新数据
+                console.log('刷新缴费数据');
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>刷新中';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>刷新';
+                    alert('数据已刷新');
+                }, 1000);
+            });
+
+            // 批量缴费
+            const batchPaymentBtn = document.getElementById('batchPaymentBtn');
+            batchPaymentBtn.addEventListener('click', function() {
+                alert('批量缴费功能正在开发中');
+            });
+
+            // 导出功能
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function() {
+                // 模拟导出数据
+                const data = [
+                    { name: '张三', idNumber: '320************018', type: '城镇职工养老保险', amount: '¥1,245.00', status: '已缴费', dueDate: '2025-06-15' },
+                    { name: '李四', idNumber: '320************019', type: '城乡居民养老保险', amount: '¥860.00', status: '未缴费', dueDate: '2025-06-15' },
+                    { name: '王五', idNumber: '320************020', type: '医疗保险', amount: '¥420.00', status: '部分缴费', dueDate: '2025-06-15' }
+                ];
+                
+                // 调用全局导出方法
+                if (window.exportData) {
+                    window.exportData(data, 'csv', '缴费记录');
+                } else {
+                    alert('导出功能正在开发中');
+                }
+            });
+
+            // 缴费详情模态框
+            const paymentDetailModal = document.getElementById('paymentDetailModal');
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            
+            // 点击表格中的查看按钮打开模态框
+            document.querySelectorAll('#paymentTableBody .fa-eye').forEach(eyeIcon => {
+                eyeIcon.addEventListener('click', function() {
+                    paymentDetailModal.classList.remove('hidden');
+                });
+            });
+            
+            closeDetailModal.addEventListener('click', function() {
+                paymentDetailModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === paymentDetailModal) {
+                    paymentDetailModal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
