@@ -1,0 +1,947 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/finance.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>财务对账 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .reconciliation-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-matched {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-mismatched {
+            background-color: #fee2e2;
+            color: #991b1b;
+            animation: pulse 2s infinite;
+        }
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .amount-positive {
+            color: #10b981;
+        }
+        .amount-negative {
+            color: #ef4444;
+        }
+        /* 增强按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: white;
+            border: 1px solid #667eea;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #f5f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        /* 差异金额增强视觉提示 */
+        .difference-amount {
+            position: relative;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        .difference-amount.positive {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        .difference-amount.negative {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .difference-amount.zero {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: #6366f1;
+        }
+        .difference-amount i {
+            margin-right: 0.25rem;
+        }
+        /* 微交互动效 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        .ripple:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+        /* 表格行动画效果 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">财务对账</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">财务对账</h1>
+                <div class="flex space-x-3">
+                    <button id="importBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-import mr-2"></i>导入数据
+                    </button>
+                    <button id="exportBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-export mr-2"></i>导出数据
+                    </button>
+                    <button id="reconcileBtn" class="btn-primary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white">
+                        <i class="fas fa-sync-alt mr-2"></i>执行对账
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">今日对账金额</p>
+                            <p class="text-2xl font-bold text-gray-800">¥ 86,420.00</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-coins text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">
+                        <i class="fas fa-arrow-up mr-1"></i>12.5% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">差异金额</p>
+                            <p class="text-2xl font-bold amount-negative">¥ 1,245.50</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-red-600">
+                        <i class="fas fa-arrow-down mr-1"></i>8.3% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">对账完成率</p>
+                            <p class="text-2xl font-bold text-gray-800">92.5%</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-percentage text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600">
+                        <i class="fas fa-arrow-up mr-1"></i>5.2% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">待处理差异</p>
+                            <p class="text-2xl font-bold text-red-500">8笔</p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-tasks text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-yellow-600">
+                        <i class="fas fa-arrow-down mr-1"></i>2笔 较昨日
+                    </div>
+                </div>
+            </div>
+
+            <!-- 过滤和搜索区域 -->
+            <div class="bg-white rounded-xl p-4 mb-6 card">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <!-- 时间筛选 -->
+                    <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                        <div>
+                            <label for="dateRange" class="sr-only">时间范围</label>
+                            <select id="dateRange" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="today">今日</option>
+                                <option value="yesterday">昨日</option>
+                                <option value="week" selected>本周</option>
+                                <option value="month">本月</option>
+                                <option value="quarter">本季度</option>
+                                <option value="year">本年</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </div>
+                        <div id="customDateRange" class="hidden flex items-center space-x-2">
+                            <input type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span>至</span>
+                            <input type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- 搜索和状态过滤 -->
+                    <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="搜索交易号/银行流水号..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部状态</option>
+                            <option value="matched">已匹配</option>
+                            <option value="mismatched">不匹配</option>
+                            <option value="pending">待处理</option>
+                        </select>
+                        <select id="typeFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部类型</option>
+                            <option value="payment">缴费</option>
+                            <option value="refund">退款</option>
+                            <option value="adjustment">调整</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 对账记录表格 -->
+            <div class="bg-white rounded-xl overflow-hidden card">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" id="selectAll" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    对账日期
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    交易号
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    银行流水号
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    交易类型
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    系统金额
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    银行金额
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    差异金额
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="reconciliationTableBody">
+                            <!-- 示例数据行 - 完全匹配 -->
+                            <tr class="hover:bg-gray-50 fade-in">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-id="1">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612001</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">BNK20250612001</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">缴费</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 1,245.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 1,245.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="difference-amount zero">
+                                        <i class="fas fa-equals"></i>
+                                        <span>¥ 0.00</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="reconciliation-status status-matched">已匹配</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新核对"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <!-- 示例数据行 - 不匹配 -->
+                            <tr class="hover:bg-gray-50 fade-in">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-id="2">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612002</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">BNK20250612002</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">缴费</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 2,500.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 2,550.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="difference-amount negative">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span>¥ -50.00</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="reconciliation-status status-mismatched">不匹配</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-3 action-btn" title="手动调整"><i class="fas fa-edit"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新核对"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <!-- 示例数据行 - 待处理 -->
+                            <tr class="hover:bg-gray-50 fade-in">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="row-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-id="3">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612003</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">BNK20250612003</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">退款</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 800.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥ 780.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="difference-amount positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>¥ 20.00</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="reconciliation-status status-pending">待处理</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-3 action-btn" title="手动调整"><i class="fas fa-edit"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新核对"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <!-- 更多数据行... -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 批量操作区域 -->
+                <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <select id="batchAction" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">批量操作</option>
+                            <option value="approve">标记已匹配</option>
+                            <option value="reject">标记不匹配</option>
+                            <option value="recheck">重新核对</option>
+                        </select>
+                        <button id="applyBatchAction" class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed ripple" disabled>
+                            应用
+                        </button>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-end">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">56</span> 条记录
+                            </p>
+                        </div>
+                        <div class="ml-4">
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">上一页</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    3
+                                </a>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    ...
+                                </span>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    6
+                                </a>
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">下一页</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 对账详情模态框 -->
+    <div id="reconciliationDetailModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">对账详情</h3>
+                                <span id="detailStatus" class="reconciliation-status status-matched">已匹配</span>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">对账日期</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易号</p>
+                                        <p class="text-sm font-medium text-gray-900">TX20250612001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">银行流水号</p>
+                                        <p class="text-sm font-medium text-gray-900">BNK20250612001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易类型</p>
+                                        <p class="text-sm font-medium text-gray-900">缴费</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易时间</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12 09:15:23</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">银行交易时间</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12 09:16:05</p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">金额对比</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div class="bg-gray-50 p-3 rounded-lg">
+                                            <p class="text-sm text-gray-500">系统金额</p>
+                                            <p class="text-xl font-bold text-gray-900">¥ 1,245.00</p>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg">
+                                            <p class="text-sm text-gray-500">银行金额</p>
+                                            <p class="text-xl font-bold text-gray-900">¥ 1,245.00</p>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg">
+                                            <p class="text-sm text-gray-500">差异金额</p>
+                                            <p class="text-xl font-bold text-gray-900">¥ 0.00</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">交易详情</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目</th>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">系统值</th>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">银行值</th>
+                                                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <tr>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">交易金额</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">¥ 1,245.00</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">¥ 1,245.00</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                                        <span class="reconciliation-status status-matched">匹配</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">交易状态</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">成功</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">成功</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                                        <span class="reconciliation-status status-matched">匹配</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">缴费人</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">张三</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">张三</td>
+                                                    <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                                        <span class="reconciliation-status status-matched">匹配</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">处理记录</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <img class="h-6 w-6 rounded-full" src="https://picsum.photos/40/40?random=2" alt="">
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">系统自动对账</p>
+                                                <p class="text-sm text-gray-500">2025-06-12 10:15:23 · 自动匹配成功</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">处理意见</p>
+                                    <textarea id="resolutionNote" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="请输入处理意见..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        标记为已处理
+                    </button>
+                    <button type="button" id="closeDetailModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入数据模态框 -->
+    <div id="importModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">导入对账数据</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-center p-6 border-2 border-dashed border-gray-300 rounded-md">
+                                    <div class="text-center">
+                                        <i class="fas fa-file-import text-gray-400 text-3xl mb-3"></i>
+                                        <p class="text-sm text-gray-600 mb-1">将文件拖放到这里，或</p>
+                                        <button type="button" class="text-blue-600 hover:text-blue-700 font-medium">浏览文件</button>
+                                        <p class="text-xs text-gray-500 mt-2">支持Excel、CSV格式（最大10MB）</p>
+                                        <input type="file" class="hidden" accept=".xlsx,.xls,.csv">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <input id="overrideExisting" name="overrideExisting" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label for="overrideExisting" class="ml-2 block text-sm text-gray-700">覆盖现有记录（如有重复交易号）</label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="button" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                        <i class="fas fa-download mr-1"></i>下载导入模板
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmImport" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        开始导入
+                    </button>
+                    <button type="button" id="cancelImport" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作成功提示 -->
+    <div id="successToast" class="fixed right-5 top-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 hidden" role="alert">
+        <div class="flex">
+            <div class="py-1"><i class="fas fa-check-circle text-green-500"></i></div>
+            <div class="ml-3">
+                <p class="text-sm" id="successMessage">操作成功！</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <div class="-mx-1.5 -my-1.5">
+                    <button type="button" class="close-toast inline-flex rounded-md p-1.5 text-green-500 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <span class="sr-only">关闭</span>
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 时间范围选择
+            const dateRange = document.getElementById('dateRange');
+            const customDateRange = document.getElementById('customDateRange');
+            
+            dateRange.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customDateRange.classList.remove('hidden');
+                } else {
+                    customDateRange.classList.add('hidden');
+                }
+            });
+
+            // 批量选择功能
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            const applyBatchActionBtn = document.getElementById('applyBatchAction');
+
+            selectAllCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBatchActionButton();
+            });
+
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!this.checked) {
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                    updateBatchActionButton();
+                });
+            });
+
+            function updateBatchActionButton() {
+                const checkedCount = Array.from(rowCheckboxes).filter(cb => cb.checked).length;
+                applyBatchActionBtn.disabled = checkedCount === 0;
+                if (checkedCount > 0) {
+                    applyBatchActionBtn.textContent = `应用 (${checkedCount})`;
+                } else {
+                    applyBatchActionBtn.textContent = '应用';
+                }
+            }
+
+            // 批量操作
+            applyBatchActionBtn.addEventListener('click', function() {
+                const action = document.getElementById('batchAction').value;
+                if (!action) {
+                    showToast('请选择批量操作类型');
+                    return;
+                }
+
+                const selectedRows = Array.from(rowCheckboxes).filter(cb => cb.checked);
+                const selectedIds = selectedRows.map(cb => cb.dataset.id);
+                
+                // 模拟操作
+                console.log(`执行批量操作: ${action}, 选中ID: ${selectedIds.join(', ')}`);
+                
+                // 显示加载状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>处理中';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    // 恢复按钮状态
+                    this.innerHTML = '应用';
+                    this.disabled = true;
+                    
+                    // 显示成功提示
+                    let actionText = '';
+                    switch(action) {
+                        case 'approve': actionText = '标记已匹配'; break;
+                        case 'reject': actionText = '标记不匹配'; break;
+                        case 'recheck': actionText = '重新核对'; break;
+                        default: actionText = action; break;
+                    }
+                    
+                    showToast(`已成功对 ${selectedIds.length} 条记录执行${actionText}操作`);
+                    
+                    // 重置选择
+                    selectAllCheckbox.checked = false;
+                    rowCheckboxes.forEach(cb => cb.checked = false);
+                    updateBatchActionButton();
+                }, 1000);
+            });
+
+            // 搜索过滤功能
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const typeFilter = document.getElementById('typeFilter');
+            
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusValue = statusFilter.value;
+                const typeValue = typeFilter.value;
+                
+                document.querySelectorAll('#reconciliationTableBody tr').forEach(row => {
+                    const txNo = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const bankNo = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                    const status = row.querySelector('td:nth-child(9) span').classList.contains(`status-${statusValue}`);
+                    const type = row.querySelector('td:nth-child(5)').textContent.toLowerCase().includes(typeValue);
+                    
+                    const matchesSearch = txNo.includes(searchTerm) || bankNo.includes(searchTerm);
+                    const matchesStatus = !statusValue || status;
+                    const matchesType = !typeValue || type;
+                    
+                    row.style.display = matchesSearch && matchesStatus && matchesType ? '' : 'none';
+                });
+            }
+            
+            searchInput.addEventListener('input', filterTable);
+            statusFilter.addEventListener('change', filterTable);
+            typeFilter.addEventListener('change', filterTable);
+
+            // 执行对账
+            const reconcileBtn = document.getElementById('reconcileBtn');
+            reconcileBtn.addEventListener('click', function() {
+                // 模拟对账过程
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>对账中';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>执行对账';
+                    this.disabled = false;
+                    showToast('财务对账已完成，发现3条差异记录');
+                }, 2000);
+            });
+
+            // 导入功能
+            const importBtn = document.getElementById('importBtn');
+            const importModal = document.getElementById('importModal');
+            const cancelImport = document.getElementById('cancelImport');
+            const confirmImport = document.getElementById('confirmImport');
+
+            importBtn.addEventListener('click', function() {
+                importModal.classList.remove('hidden');
+            });
+
+            cancelImport.addEventListener('click', function() {
+    ist.add('hidden');
+            });
+
+            confirmImport.addEventListener('click', function() {
+                // 模拟导入处理
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导入中';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '开始导入';
+                    this.disabled = false;
+                    importModal.classList.add('hidden');
+                    showToast('对账数据导入成功！共导入15条记录。');
+                }, 2000);
+            });
+
+            // 导出功能
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function() {
+                // 模拟导出数据
+                const data = [
+                    { date: '2025-06-12', txNo: 'TX20250612001', bankNo: 'BNK20250612001', type: '缴费', systemAmount: '¥1,245.00', bankAmount: '¥1,245.00', diff: '¥0.00', status: '已匹配' },
+                    { date: '2025-06-12', txNo: 'TX20250612002', bankNo: 'BNK20250612002', type: '退款', systemAmount: '¥860.00', bankAmount: '¥860.00', diff: '¥0.00', status: '已匹配' },
+                    { date: '2025-06-12', txNo: 'TX20250612003', bankNo: 'BNK20250612003', type: '缴费', systemAmount: '¥420.00', bankAmount: '¥420.50', diff: '¥0.50', status: '不匹配' }
+                ];
+                
+                // 显示加载状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导出中';
+                
+                setTimeout(() => {
+                    // 恢复按钮状态
+                    this.innerHTML = '<i class="fas fa-file-export mr-2"></i>导出数据';
+                    
+                    // 调用全局导出方法
+                    if (window.exportData) {
+                        window.exportData(data, 'csv', '对账记录');
+                        showToast('对账数据导出成功！');
+                    } else {
+                        showToast('导出功能正在开发中');
+                    }
+                }, 1000);
+            });
+
+            // 对账详情模态框
+            const reconciliationDetailModal = document.getElementById('reconciliationDetailModal');
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            
+            // 点击表格中的查看按钮打开模态框
+            document.querySelectorAll('#reconciliationTableBody .fa-eye').forEach(eyeIcon => {
+                eyeIcon.addEventListener('click', function() {
+                    reconciliationDetailModal.classList.remove('hidden');
+                });
+            });
+            
+            closeDetailModal.addEventListener('click', function() {
+                reconciliationDetailModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === reconciliationDetailModal) {
+                    reconciliationDetailModal.classList.add('hidden');
+                }
+                if (event.target === importModal) {
+                    importModal.classList.add('hidden');
+                }
+            });
+
+            // 消息提示功能
+            const successToast = document.getElementById('successToast');
+            const successMessage = document.getElementById('successMessage');
+            
+            document.querySelectorAll('.close-toast').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.closest('[role="alert"]').classList.add('hidden');
+                });
+            });
+
+            function showToast(message, duration = 3000) {
+                successMessage.textContent = message;
+                successToast.classList.remove('hidden');
+                
+                // 自动关闭
+                setTimeout(() => {
+                    successToast.classList.add('hidden');
+                }, duration);
+            }
+        });
+    </script>
+</body>
+</html>
