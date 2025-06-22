@@ -1,22 +1,170 @@
+
+<!-- public_employment_service_platform_8683/frontend/index.html -->
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
-
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit">Greet</button>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>社会保险费信息共享系统平台- 登录</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .login-container {
+            position: relative;
+            z-index: 1;
+        }
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+    <canvas id="particles" class="particles"></canvas>
+    
+    <div class="login-container bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-md mx-4">
+        <div class="px-10 py-12">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">社会保险费信息</h1>
+                <p class="text-gray-600 mt-2">共享系统平台</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="username" name="username" 
+                           class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-300"
+                           placeholder="请输入用户名" required>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="password" name="password" 
+                           class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500 transition duration-300"
+                           placeholder="请输入密码" required>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember" name="remember" type="checkbox" 
+                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-700">记住我</label>
+                    </div>
+                    
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">忘记密码?</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <button type="submit" 
+                            class="btn-login w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium shadow-md hover:shadow-lg transition duration-300 transform">
+                        登录
+                    </button>
+                </div>
             </form>
-            <p id="greet-msg"></p>
-        </main>
-    </body>
+            
+            <div class="mt-6 text-center text-sm text-gray-500">
+                还没有账号? <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">联系管理员</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 粒子效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const particleCount = 80;
+            
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: Math.random() * 2 - 1,
+                    speedY: Math.random() * 2 - 1
+                });
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    
+                    if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            // 登录验证
+            const loginForm = document.getElementById('loginForm');
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const remember = document.getElementById('remember').checked;
+                
+                if (username === 'admin' && password === '12345') {
+                    if (remember) {
+                        localStorage.setItem('rememberMe', 'true');
+                        localStorage.setItem('username', username);
+                    } else {
+                        localStorage.removeItem('rememberMe');
+                        localStorage.removeItem('username');
+                    }
+                    
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('用户名或密码错误！');
+                }
+            });
+            
+            // 检查记住我状态
+            if (localStorage.getItem('rememberMe') === 'true') {
+                document.getElementById('username').value = localStorage.getItem('username') || '';
+                document.getElementById('remember').checked = true;
+            }
+        });
+    </script>
+</body>
 </html>
