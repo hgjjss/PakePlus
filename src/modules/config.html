@@ -1,0 +1,870 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/config.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>交易配置 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .config-version {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .version-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .version-draft {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .version-deprecated {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        .diff-added {
+            background-color: #dcfce7;
+        }
+        .diff-removed {
+            background-color: #fee2e2;
+        }
+        .diff-changed {
+            background-color: #fef3c7;
+        }
+        /* 增强按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #4f46e5;
+            border: 1px solid #4f46e5;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #f5f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        /* 微交互动效 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        .ripple:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+        /* 配置项分组样式 */
+        .config-group {
+            border-left: 3px solid #6366f1;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .config-group-title {
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 0.75rem;
+        }
+        /* 配置详情标签样式 */
+        .config-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+        .tag-system {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        .tag-security {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+        .tag-advanced {
+            background-color: #ddd6fe;
+            color: #7e22ce;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">交易配置</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <h1 class="text-2xl font-bold text-gray-800">交易配置管理</h1>
+                <div class="flex flex-wrap gap-3">
+                    <button id="exportBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-export mr-2"></i>导出配置
+                    </button>
+                    <button id="importBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-import mr-2"></i>导入配置
+                    </button>
+                    <button id="newConfigBtn" class="btn-primary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white">
+                        <i class="fas fa-plus mr-2"></i>新增配置
+                    </button>
+                </div>
+            </div>
+
+            <!-- 版本管理 -->
+            <div class="bg-white rounded-xl p-6 mb-6 card">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 class="text-xl font-bold text-gray-800">配置版本管理</h2>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="relative">
+                            <input type="text" id="versionSearch" placeholder="搜索版本号..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部状态</option>
+                            <option value="active">已生效</option>
+                            <option value="draft">草稿</option>
+                            <option value="deprecated">已废弃</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    版本号
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    创建人
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    创建时间
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    生效时间
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    描述
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="versionTableBody">
+                            <!-- 示例数据行 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">v2.5.1</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="config-version version-active">已生效</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=1" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">管理员</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-01</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-05</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">优化参保登记流程</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-1 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-1 action-btn" title="复制"><i class="fas fa-copy"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 mr-1 action-btn" title="编辑"><i class="fas fa-edit"></i></button>
+                                    <button class="text-red-500 hover:text-red-700 action-btn" title="删除"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">v2.5.0</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="config-version version-deprecated">已废弃</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=2" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">管理员</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-05-15</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-05-20</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">新增银行支付支持</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-1 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-1 action-btn" title="复制"><i class="fas fa-copy"></i></button>
+                                    <button class="text-gray-400 cursor-not-allowed mr-1" title="已废弃无法编辑"><i class="fas fa-edit"></i></button>
+                                    <button class="text-red-500 hover:text-red-700 action-btn" title="删除"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">v2.6.0-beta</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="config-version version-draft">草稿</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=3" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">开发人员</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-10</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-400">未生效</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">增强安全性配置</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-1 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-green-500 hover:text-green-700 mr-1 action-btn" title="复制"><i class="fas fa-copy"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 mr-1 action-btn" title="编辑"><i class="fas fa-edit"></i></button>
+                                    <button class="text-yellow-500 hover:text-yellow-700 mr-1 action-btn" title="发布"><i class="fas fa-rocket"></i></button>
+                                    <button class="text-red-500 hover:text-red-700 action-btn" title="删除"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 配置项管理 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 配置项列表 -->
+                <div class="lg:col-span-1 bg-white rounded-xl p-6 card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">配置项列表</h2>
+                        <div class="relative">
+                            <input type="text" id="configSearch" placeholder="搜索配置项..." class="filter-input border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition duration-200 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-900">参保登记配置</span>
+                            <div class="flex items-center">
+                                <span class="config-tag tag-system mr-1">系统</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg cursor-pointer transition duration-200 flex justify-between items-center border-l-4 border-blue-500">
+                            <span class="text-sm font-medium text-gray-900">缴费管理配置</span>
+                            <div class="flex items-center">
+                                <span class="config-tag tag-security mr-1">安全</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition duration-200 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-900">异常处理配置</span>
+                            <div class="flex items-center">
+                                <span class="config-tag tag-system mr-1">系统</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition duration-200 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-900">财务对账配置</span>
+                            <div class="flex items-center">
+                                <span class="config-tag tag-security mr-1">安全</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition duration-200 flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-900">系统参数配置</span>
+                            <div class="flex items-center">
+                                <span class="config-tag tag-advanced mr-1">高级</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 配置详情 -->
+                <div class="lg:col-span-2 bg-white rounded-xl p-6 card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">缴费管理配置</h2>
+                        <div class="flex space-x-3">
+                            <button id="resetConfigBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium">
+                                <i class="fas fa-undo mr-2"></i>重置
+                            </button>
+                            <button id="saveConfigBtn" class="btn-primary ripple flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white">
+                                <i class="fas fa-save mr-2"></i>保存
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- 配置表单 - 按分组显示 -->
+                        <div class="space-y-5">
+                            <!-- 基本配置组 -->
+                            <div class="config-group">
+                                <h3 class="config-group-title">基本设置</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="paymentTimeout" class="block text-sm font-medium text-gray-700">支付超时时间(秒)</label>
+                                        <input type="number" id="paymentTimeout" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="300">
+                                    </div>
+                                    <div>
+                                        <label for="maxRetryCount" class="block text-sm font-medium text-gray-700">最大重试次数</label>
+                                        <input type="number" id="maxRetryCount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="3">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 金额配置组 -->
+                            <div class="config-group">
+                                <h3 class="config-group-title">金额限制</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="minPaymentAmount" class="block text-sm font-medium text-gray-700">最低缴费金额(元)</label>
+                                        <input type="number" id="minPaymentAmount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="10">
+                                    </div>
+                                    <div>
+                                        <label for="maxPaymentAmount" class="block text-sm font-medium text-gray-700">最高缴费金额(元)</label>
+                                        <input type="number" id="maxPaymentAmount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="50000">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 支付方式配置组 -->
+                            <div class="config-group">
+                                <h3 class="config-group-title">支付方式</h3>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">启用支付方式</label>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div class="flex items-center p-3 border border-gray-200 rounded-lg">
+                                            <input id="enableWechatPay" name="enableWechatPay" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                            <label for="enableWechatPay" class="ml-2 block text-sm text-gray-700">微信支付</label>
+                                        </div>
+                                        <div class="flex items-center p-3 border border-gray-200 rounded-lg">
+                                            <input id="enableAlipay" name="enableAlipay" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                            <label for="enableAlipay" class="ml-2 block text-sm text-gray-700">支付宝</label>
+                                        </div>
+                                        <div class="flex items-center p-3 border border-gray-200 rounded-lg">
+                                            <input id="enableBankTransfer" name="enableBankTransfer" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <label for="enableBankTransfer" class="ml-2 block text-sm text-gray-700">银行转账</label>
+                                        </div>
+                                        <div class="flex items-center p-3 border border-gray-200 rounded-lg">
+                                            <input id="enableUnionPay" name="enableUnionPay" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <label for="enableUnionPay" class="ml-2 block text-sm text-gray-700">银联支付</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label for="allowedBanks" class="block text-sm font-medium text-gray-700">支持的银行</label>
+                                    <select id="allowedBanks" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                        <option value="icbc" selected>工商银行</option>
+                                        <option value="abc" selected>农业银行</option>
+                                        <option value="boc" selected>中国银行</option>
+                                        <option value="ccb" selected>建设银行</option>
+                                        <option value="cmb">招商银行</option>
+                                        <option value="spdb">浦发银行</option>
+                                        <option value="cib">兴业银行</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- 高级配置组 -->
+                            <div class="config-group">
+                                <h3 class="config-group-title">高级设置</h3>
+                                <div>
+                                    <label for="paymentNotifyUrl" class="block text-sm font-medium text-gray-700">支付通知URL</label>
+                                    <input type="text" id="paymentNotifyUrl" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="https://api.example.com/payment/notify">
+                                    <p class="mt-1 text-xs text-gray-500">支付结果异步通知地址，需要能被外网访问</p>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label for="paymentSuccessPage" class="block text-sm font-medium text-gray-700">支付成功跳转页面</label>
+                                    <input type="text" id="paymentSuccessPage" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="/payment/success">
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label for="paymentFailPage" class="block text-sm font-medium text-gray-700">支付失败跳转页面</label>
+                                    <input type="text" id="paymentFailPage" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="/payment/fail">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 版本差异对比 -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">与v2.4.0版本的差异</h3>
+                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium text-gray-700">缴费管理配置</span>
+                                    </div>
+                                </div>
+                                <div class="divide-y divide-gray-200">
+                                    <div class="px-4 py-3 diff-added">
+                                        <div class="flex">
+                                            <span class="text-green-600 mr-2">+</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">新增支付超时时间配置</p>
+                                                <p class="text-xs text-gray-500">默认值: 300秒</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-4 py-3 diff-changed">
+                                        <div class="flex">
+                                            <span class="text-yellow-600 mr-2">~</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">修改最高缴费金额</p>
+                                                <p class="text-xs text-gray-500">从 ¥20,000 调整为 ¥50,000</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-4 py-3 diff-removed">
+                                        <div class="flex">
+                                            <span class="text-red-600 mr-2">-</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">移除银联支付支持</p>
+                                                <p class="text-xs text-gray-500">默认值已更改为禁用</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-4 py-3 diff-added">
+                                        <div class="flex">
+                                            <span class="text-green-600 mr-2">+</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">新增支付成功/失败跳转页面配置</p>
+                                                <p class="text-xs text-gray-500">允许自定义支付结果页面路径</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增配置版本模态框 -->
+    <div id="newConfigModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">新增配置版本</h3>
+                            <form class="space-y-4">
+                                <div>
+                                    <label for="versionNumber" class="block text-sm font-medium text-gray-700">版本号</label>
+                                    <input type="text" id="versionNumber" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="例如: v2.5.2">
+                                </div>
+                                <div>
+                                    <label for="baseVersion" class="block text-sm font-medium text-gray-700">基于版本</label>
+                                    <select id="baseVersion" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                        <option value="v2.5.1">v2.5.1 (当前生效)</option>
+                                        <option value="v2.5.0">v2.5.0 (已废弃)</option>
+                                        <option value="v2.6.0-beta">v2.6.0-beta (草稿)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="versionStatus" class="block text-sm font-medium text-gray-700">版本状态</label>
+                                    <select id="versionStatus" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                        <option value="draft">草稿</option>
+                                        <option value="active">立即生效</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="versionDescription" class="block text-sm font-medium text-gray-700">版本描述</label>
+                                    <textarea id="versionDescription" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="简要描述本次配置变更内容"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmNewConfig" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        创建
+                    </button>
+                    <button type="button" id="cancelNewConfig" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入配置模态框 -->
+    <div id="importConfigModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">导入配置文件</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-center p-6 border-2 border-dashed border-gray-300 rounded-md">
+                                    <div class="text-center">
+                                        <i class="fas fa-file-import text-gray-400 text-3xl mb-3"></i>
+                                        <p class="text-sm text-gray-600 mb-1">将文件拖放到这里，或</p>
+                                        <button type="button" class="text-blue-600 hover:text-blue-700 font-medium">浏览文件</button>
+                                        <p class="text-xs text-gray-500 mt-2">支持JSON、YAML格式（最大5MB）</p>
+                                        <input type="file" class="hidden" accept=".json,.yaml,.yml">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <input id="importAsNew" name="importAsNew" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label for="importAsNew" class="ml-2 block text-sm text-gray-700">作为新版本导入</label>
+                                    </div>
+                                </div>
+                                <div id="newVersionContainer" class="hidden">
+                                    <label for="importVersionNumber" class="block text-sm font-medium text-gray-700">新版本号</label>
+                                    <input type="text" id="importVersionNumber" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="例如: v2.5.3">
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <input id="overrideExisting" name="overrideExisting" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <label for="overrideExisting" class="ml-2 block text-sm text-gray-700">覆盖现有配置（如有冲突）</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmImport" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        开始导入
+                    </button>
+                    <button type="button" id="cancelImport" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作成功提示 -->
+    <div id="successToast" class="fixed right-5 top-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 hidden" role="alert">
+        <div class="flex">
+            <div class="py-1"><i class="fas fa-check-circle text-green-500"></i></div>
+            <div class="ml-3">
+                <p class="text-sm" id="successMessage">操作成功！</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <div class="-mx-1.5 -my-1.5">
+                    <button type="button" class="close-toast inline-flex rounded-md p-1.5 text-green-500 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <span class="sr-only">关闭</span>
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 新增配置版本
+            const newConfigBtn = document.getElementById('newConfigBtn');
+            const newConfigModal = document.getElementById('newConfigModal');
+            const cancelNewConfig = document.getElementById('cancelNewConfig');
+            const confirmNewConfig = document.getElementById('confirmNewConfig');
+            
+            newConfigBtn.addEventListener('click', function() {
+                newConfigModal.classList.remove('hidden');
+            });
+            
+            cancelNewConfig.addEventListener('click', function() {
+                newConfigModal.classList.add('hidden');
+            });
+
+            confirmNewConfig.addEventListener('click', function() {
+                const versionNumber = document.getElementById('versionNumber').value;
+                if (!versionNumber) {
+                    alert('请输入版本号');
+                    return;
+                }
+                
+                // 显示加载状态
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>创建中';
+                
+                // 模拟API调用
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '创建';
+                    newConfigModal.classList.add('hidden');
+                    
+                    showToast('配置版本创建成功！');
+                }, 1000);
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === newConfigModal) {
+                    newConfigModal.classList.add('hidden');
+                }
+                if (event.target === importConfigModal) {
+                    importConfigModal.classList.add('hidden');
+                }
+            });
+
+            // 导入配置
+            const importBtn = document.getElementById('importBtn');
+            const importConfigModal = document.getElementById('importConfigModal');
+            const cancelImport = document.getElementById('cancelImport');
+            const confirmImport = document.getElementById('confirmImport');
+            const importAsNew = document.getElementById('importAsNew');
+            const newVersionContainer = document.getElementById('newVersionContainer');
+            
+            importBtn.addEventListener('click', function() {
+                importConfigModal.classList.remove('hidden');
+            });
+            
+            cancelImport.addEventListener('click', function() {
+                importConfigModal.classList.add('hidden');
+            });
+            
+            importAsNew.addEventListener('change', function() {
+                newVersionContainer.classList.toggle('hidden', !this.checked);
+            });
+            
+            confirmImport.addEventListener('click', function() {
+                // 模拟导入处理
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导入中';
+                
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '开始导入';
+                    importConfigModal.classList.add('hidden');
+                    showToast('配置文件导入成功！');
+                }, 1500);
+            });
+
+            // 保存配置
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            saveConfigBtn.addEventListener('click', function() {
+                // 模拟保存配置
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>保存中';
+                
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-save mr-2"></i>保存';
+                    showToast('配置已成功保存！');
+                }, 1000);
+            });
+
+            // 重置配置
+            const resetConfigBtn = document.getElementById('resetConfigBtn');
+            resetConfigBtn.addEventListener('click', function() {
+                if (confirm('确定要重置所有配置为默认值吗？')) {
+                    // 模拟重置配置
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>重置中';
+                    
+                    setTimeout(() => {
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-undo mr-2"></i>重置';
+                        showToast('配置已重置为默认值！');
+                    }, 1000);
+                }
+            });
+
+            // 导出功能
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function() {
+                // 模拟导出数据
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导出中';
+                
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-file-export mr-2"></i>导出配置';
+                    
+                    // 调用全局导出方法
+                    if (window.exportData) {
+                        const data = [
+                            { version: 'v2.5.1', status: '已生效', creator: '管理员', createTime: '2025-06-01', effectTime: '2025-06-05', description: '优化参保登记流程' },
+                            { version: 'v2.5.0', status: '已废弃', creator: '管理员', createTime: '2025-05-15', effectTime: '2025-05-20', description: '新增银行支付支持' },
+                            { version: 'v2.6.0-beta', status: '草稿', creator: '开发人员', createTime: '2025-06-10', effectTime: '未生效', description: '增强安全性配置' }
+                        ];
+                        window.exportData(data, 'json', '交易配置数据');
+                        showToast('配置数据导出成功！');
+                    } else {
+                        showToast('导出功能正在开发中');
+                    }
+                }, 1000);
+            });
+
+            // 搜索过滤功能
+            const versionSearch = document.getElementById('versionSearch');
+            const configSearch = document.getElementById('configSearch');
+            const statusFilter = document.getElementById('statusFilter');
+            
+            versionSearch.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                document.querySelectorAll('#versionTableBody tr').forEach(row => {
+                    const version = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    const desc = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
+                    row.style.display = version.includes(term) || desc.includes(term) ? '' : 'none';
+                });
+            });
+            
+            configSearch.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                document.querySelectorAll('.space-y-3 > div').forEach(item => {
+                    const name = item.querySelector('span').textContent.toLowerCase();
+                    item.style.display = name.includes(term) ? '' : 'none';
+                });
+            });
+            
+            statusFilter.addEventListener('change', function() {
+                const value = this.value;
+                document.querySelectorAll('#versionTableBody tr').forEach(row => {
+                    const status = row.querySelector('td:nth-child(2) span').classList.contains(`version-${value}`);
+                    row.style.display = !value || status ? '' : 'none';
+                });
+            });
+
+            // 消息提示功能
+            const successToast = document.getElementById('successToast');
+            const successMessage = document.getElementById('successMessage');
+            
+            document.querySelectorAll('.close-toast').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.closest('[role="alert"]').classList.add('hidden');
+                });
+            });
+
+            function showToast(message, duration = 3000) {
+                successMessage.textContent = message;
+                successToast.classList.remove('hidden');
+                
+                // 自动关闭
+                setTimeout(() => {
+                    successToast.classList.add('hidden');
+                }, duration);
+            }
+        });
+    </script>
+</body>
+</html>
