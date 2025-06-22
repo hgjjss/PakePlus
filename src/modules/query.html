@@ -1,0 +1,831 @@
+
+<!-- public_employment_service_platform_8683/frontend/modules/query.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实时交易查询 - 公共就业服务平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .tx-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-processing {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        .status-failed {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        .refresh-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+        .tx-duration {
+            font-family: monospace;
+        }
+        /* 添加按钮增强效果 */
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4338ca, #2563eb);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(79, 70, 229, 0.3);
+        }
+        .btn-secondary {
+            background: white;
+            color: #4f46e5;
+            border: 1px solid #4f46e5;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-secondary:hover {
+            background: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.15);
+        }
+        /* 波纹效果 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            transition: 0s;
+        }
+        .ripple:active:after {
+            transform: translate(-50%, -50%) scale(20);
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+        /* 查询按钮增强 */
+        .search-btn {
+            min-width: 120px;
+            position: relative;
+        }
+        .search-btn:hover i {
+            animation: search-pulse 1s ease infinite;
+        }
+        @keyframes search-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="hidden md:block">
+            <!-- 侧边栏内容由dashboard.html加载 -->
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-6">
+            <!-- 面包屑导航 -->
+            <div class="flex items-center text-sm text-gray-600 mb-6">
+                <a href="../dashboard.html" class="hover:text-blue-500">仪表盘</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-800 font-medium">实时交易查询</span>
+            </div>
+
+            <!-- 标题和操作按钮 -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">实时交易查询</h1>
+                <div class="flex space-x-3">
+                    <div class="relative">
+                        <button id="refreshBtn" class="btn-primary ripple px-4 py-2 rounded-lg flex items-center space-x-2">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>刷新</span>
+                        </button>
+                        <span id="refreshBadge" class="refresh-badge bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </div>
+                    <button id="exportBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg">
+                        <i class="fas fa-file-export mr-2"></i>
+                        <span>导出</span>
+                    </button>
+                    <button id="saveQueryBtn" class="btn-secondary ripple flex items-center px-4 py-2 rounded-lg">
+                        <i class="fas fa-save mr-2"></i>
+                        <span>保存查询</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">今日交易量</p>
+                            <p class="text-2xl font-bold text-gray-800">1,245</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-exchange-alt text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-blue-600">
+                        <i class="fas fa-arrow-up mr-1"></i>12.5% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">成功交易</p>
+                            <p class="text-2xl font-bold text-gray-800">1,180</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">
+                        <i class="fas fa-arrow-up mr-1"></i>15.2% 较昨日
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">平均耗时</p>
+                            <p class="text-2xl font-bold text-gray-800 tx-duration">328ms</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-stopwatch text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-purple-600">
+                        <i class="fas fa-arrow-down mr-1"></i>8.3% 较昨日
+                    </div>
+                </div>
+            </div>
+
+            <!-- 查询条件区域 -->
+            <div class="bg-white rounded-xl p-6 mb-6 card">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label for="txId" class="block text-sm font-medium text-gray-700 mb-1">交易号</label>
+                        <input type="text" id="txId" class="filter-input w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="输入交易号">
+                    </div>
+                    <div>
+                        <label for="txType" class="block text-sm font-medium text-gray-700 mb-1">交易类型</label>
+                        <select id="txType" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="">全部类型</option>
+                            <option value="registration">参保登记</option>
+                            <option value="payment">缴费</option>
+                            <option value="refund">退款</option>
+                            <option value="query">查询</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="txStatus" class="block text-sm font-medium text-gray-700 mb-1">交易状态</label>
+                        <select id="txStatus" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="">全部状态</option>
+                            <option value="success">成功</option>
+                            <option value="processing">处理中</option>
+                            <option value="failed">失败</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="dateRange" class="block text-sm font-medium text-gray-700 mb-1">时间范围</label>
+                        <select id="dateRange" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="today">今日</option>
+                            <option value="yesterday">昨日</option>
+                            <option value="week" selected>本周</option>
+                            <option value="month">本月</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                    <div id="customDateRange" class="hidden md:col-span-2 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">开始时间</label>
+                            <input type="datetime-local" id="startDate" class="filter-input w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">结束时间</label>
+                            <input type="datetime-local" id="endDate" class="filter-input w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-center">
+                    <button id="searchBtn" class="btn-primary ripple search-btn px-6 py-2.5 rounded-lg flex items-center justify-center space-x-2 shadow-lg">
+                        <i class="fas fa-search text-lg"></i>
+                        <span class="font-medium">立即查询</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 交易记录表格 -->
+            <div class="bg-white rounded-xl overflow-hidden card">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    交易号
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    类型
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    用户
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    金额
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    耗时
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    时间
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    操作
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="txTableBody">
+                            <!-- 示例数据行 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612001</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">参保登记</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=1" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">张三</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">-</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="tx-status status-success">成功</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 tx-duration">328ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 09:15:23</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            <!-- 第二行示例数据 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612002</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">缴费</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=2" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">李四</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥1,245.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="tx-status status-processing">处理中</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 tx-duration">456ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 10:23:45</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                            <!-- 第三行示例数据 -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">TX20250612003</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">退款</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <img class="h-8 w-8 rounded-full" src="https://picsum.photos/32/32?random=3" alt="">
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="text-sm font-medium text-gray-900">王五</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">¥860.00</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="tx-status status-failed">失败</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 tx-duration">789ms</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">2025-06-12 11:42:18</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-3 action-btn" title="查看详情"><i class="fas fa-eye"></i></button>
+                                    <button class="text-purple-500 hover:text-purple-700 action-btn" title="重新执行"><i class="fas fa-redo"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <div class="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            上一页
+                        </a>
+                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            下一页
+                        </a>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">1,245</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">上一页</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </a>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    3
+                                </a>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    ...
+                                </span>
+                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    25
+                                </a>
+                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">下一页</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交易详情模态框 -->
+    <div id="txDetailModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">交易详情</h3>
+                                <span id="detailStatus" class="tx-status status-success">成功</span>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易号</p>
+                                        <p class="text-sm font-medium text-gray-900">TX20250612001</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易类型</p>
+                                        <p class="text-sm font-medium text-gray-900">参保登记</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">交易时间</p>
+                                        <p class="text-sm font-medium text-gray-900">2025-06-12 09:15:23</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">用户</p>
+                                        <p class="text-sm font-medium text-gray-900">张三 (admin)</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">耗时</p>
+                                        <p class="text-sm font-medium text-gray-900 tx-duration">328ms</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">IP地址</p>
+                                        <p class="text-sm font-medium text-gray-900">192.168.1.100</p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">请求参数</h4>
+                                    <div class="bg-gray-50 p-3 rounded-md">
+                                        <code class="text-xs text-gray-800">
+                                            {<br>
+                                            &nbsp;&nbsp;"name": "张三",<br>
+                                            &nbsp;&nbsp;"idNumber": "320************018",<br>
+                                            &nbsp;&nbsp;"insuranceType": "城镇职工养老保险",<br>
+                                            &nbsp;&nbsp;"address": "江苏省南京市玄武区"<br>
+                                            }
+                                        </code>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">响应结果</h4>
+                                    <div class="bg-gray-50 p-3 rounded-md">
+                                        <code class="text-xs text-gray-800">
+                                            {<br>
+                                            &nbsp;&nbsp;"code": 200,<br>
+                                            &nbsp;&nbsp;"message": "参保登记成功",<br>
+                                            &nbsp;&nbsp;"data": {<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"registrationId": "REG20250612001",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"nextStep": "缴费"<br>
+                                            &nbsp;&nbsp;}<br>
+                                            }
+                                        </code>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">处理日志</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.123 - 开始处理参保登记请求</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.234 - 验证用户身份信息成功</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-database text-purple-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.345 - 保存参保信息到数据库</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">09:15:23.451 - 参保登记处理完成</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ripple">
+                        导出日志
+                    </button>
+                    <button type="button" id="closeDetailModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存查询条件模态框 -->
+    <div id="saveQueryModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">保存查询条件</h3>
+                            <form class="space-y-4">
+                                <div>
+                                    <label for="queryName" class="block text-sm font-medium text-gray-700">查询名称</label>
+                                    <input type="text" id="queryName" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="例如: 今日成功交易">
+                                </div>
+                                <div>
+                                    <label for="queryDescription" class="block text-sm font-medium text-gray-700">描述(可选)</label>
+                                    <textarea id="queryDescription" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="简要描述此查询条件"></textarea>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="autoRefresh" name="autoRefresh" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="autoRefresh" class="ml-2 block text-sm text-gray-700">启用自动刷新</label>
+                                </div>
+                                <div id="refreshIntervalContainer" class="hidden">
+                                    <label for="refreshInterval" class="block text-sm font-medium text-gray-700">刷新间隔(秒)</label>
+                                    <select id="refreshInterval" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                        <option value="5">5秒</option>
+                                        <option value="10" selected>10秒</option>
+                                        <option value="30">30秒</option>
+                                        <option value="60">1分钟</option>
+                                        <option value="300">5分钟</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmSaveQuery" class="ripple w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        保存
+                    </button>
+                    <button type="button" id="cancelSaveQuery" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 时间范围选择
+            const dateRange = document.getElementById('dateRange');
+            const customDateRange = document.getElementById('customDateRange');
+            
+            dateRange.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customDateRange.classList.remove('hidden');
+                } else {
+                    customDateRange.classList.add('hidden');
+                }
+            });
+
+            // 自动刷新切换
+            const autoRefresh = document.getElementById('autoRefresh');
+            const refreshIntervalContainer = document.getElementById('refreshIntervalContainer');
+            
+            autoRefresh.addEventListener('change', function() {
+                refreshIntervalContainer.classList.toggle('hidden', !this.checked);
+            });
+
+            // 刷新按钮
+            const refreshBtn = document.getElementById('refreshBtn');
+            const refreshBadge = document.getElementById('refreshBadge');
+            let refreshCount = 0;
+            let autoRefreshInterval = null;
+            
+            refreshBtn.addEventListener('click', function() {
+                refreshData(this);
+            });
+
+            function refreshData(button) {
+                // 模拟刷新数据
+                console.log('刷新交易数据');
+                refreshCount++;
+                refreshBadge.textContent = refreshCount;
+                refreshBadge.classList.remove('hidden');
+                
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>刷新中</span>';
+                button.disabled = true;
+                
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i><span>刷新</span>';
+                    button.disabled = false;
+                    // 这里可以添加实际的数据刷新逻辑
+                }, 1000);
+            }
+
+            // 搜索按钮
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.addEventListener('click', function() {
+                // 模拟查询操作
+                this.innerHTML = '<i class="fas fa-spinner fa-spin text-lg"></i><span class="ml-2">查询中...</span>';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-search text-lg"></i><span class="ml-2">立即查询</span>';
+                    this.disabled = false;
+                    
+                    // 模拟查询通知
+                    alert('查询已完成!');
+                }, 1200);
+            });
+
+            // 保存查询条件
+            const saveQueryBtn = document.getElementById('saveQueryBtn');
+            const saveQueryModal = document.getElementById('saveQueryModal');
+            const confirmSaveQuery = document.getElementById('confirmSaveQuery');
+            const cancelSaveQuery = document.getElementById('cancelSaveQuery');
+            
+            saveQueryBtn.addEventListener('click', function() {
+                saveQueryModal.classList.remove('hidden');
+            });
+            
+            confirmSaveQuery.addEventListener('click', function() {
+                const queryName = document.getElementById('queryName').value;
+                if (!queryName) {
+                    alert('请输入查询名称');
+                    return;
+                }
+                
+                const queryDescription = document.getElementById('queryDescription').value;
+                const enableAutoRefresh = document.getElementById('autoRefresh').checked;
+                const refreshInterval = document.getElementById('refreshInterval').value;
+                
+                // 模拟保存查询条件
+                console.log('保存查询条件:', {
+                    name: queryName,
+                    description: queryDescription,
+                    autoRefresh: enableAutoRefresh,
+                    interval: refreshInterval
+                });
+                
+                // 如果启用了自动刷新，设置定时器
+                if (enableAutoRefresh) {
+                    if (autoRefreshInterval) {
+                        clearInterval(autoRefreshInterval);
+                    }
+                    autoRefreshInterval = setInterval(() => refreshData(refreshBtn), parseInt(refreshInterval) * 1000);
+                } else if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                
+                // 显示成功提示并关闭模态窗
+                alert('查询条件已保存');
+                saveQueryModal.classList.add('hidden');
+            });
+            
+            cancelSaveQuery.addEventListener('click', function() {
+                saveQueryModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === saveQueryModal) {
+                    saveQueryModal.classList.add('hidden');
+                }
+            });
+
+            // 导出功能
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.addEventListener('click', function() {
+                // 显示导出中状态
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>导出中';
+                this.disabled = true;
+                
+                // 模拟导出数据
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-file-export mr-2"></i>导出';
+                    this.disabled = false;
+                    
+                    const data = [
+                        { txNo: 'TX20250612001', type: '参保登记', user: '张三', amount: '-', status: '成功', duration: '328ms', time: '2025-06-12 09:15:23' },
+                        { txNo: 'TX20250612002', type: '缴费', user: '李四', amount: '¥1,245.00', status: '成功', duration: '456ms', time: '2025-06-12 09:30:45' },
+                        { txNo: 'TX20250612003', type: '退款', user: '王五', amount: '¥860.00', status: '处理中', duration: '789ms', time: '2025-06-12 10:15:12' }
+                    ];
+                    
+                    // 调用全局导出方法
+                    if (window.exportData) {
+                        window.exportData(data, 'csv', '交易记录');
+                        alert('导出成功!');
+                    } else {
+                        alert('导出功能正在开发中');
+                    }
+                }, 1000);
+            });
+
+            // 交易详情模态框
+            const txDetailModal = document.getElementById('txDetailModal');
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            
+            // 点击表格中的查看按钮打开模态框
+            document.querySelectorAll('#txTableBody .fa-eye').forEach(eyeIcon => {
+                eyeIcon.addEventListener('click', function() {
+                    txDetailModal.classList.remove('hidden');
+                });
+            });
+            
+            closeDetailModal.addEventListener('click', function() {
+                txDetailModal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === txDetailModal) {
+                    txDetailModal.classList.add('hidden');
+                }
+            });
+
+            // 页面卸载时清除定时器
+            window.addEventListener('beforeunload', function() {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                }
+            });
+            
+            // 添加波纹效果
+            document.querySelectorAll('.ripple').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // 添加波纹动画
+                    let ripple = document.createElement('span');
+                    ripple.classList.add('ripple-effect');
+                    ripple.style.width = ripple.style.height = Math.max(this.offsetWidth, this.offsetHeight) + 'px';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
