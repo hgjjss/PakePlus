@@ -1,0 +1,490 @@
+
+<!-- emergency_av_management_server/frontend/dashboard.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>急救视音频系统管理服务器软件- 控制面板</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-online {
+            background: #10b981;
+        }
+        .status-offline {
+            background: #ef4444;
+        }
+        .status-warning {
+            background: #f59e0b;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .alert-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <div id="particles-js"></div>
+    
+    <!-- 侧边栏导航 -->
+    <div class="sidebar w-64 flex-shrink-0 text-white">
+        <div class="p-4 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-ambulance mr-2"></i>
+               急救视音频系统管理服务器软件
+            </h1>
+            <p class="text-sm text-blue-200">Emergency AV System</p>
+        </div>
+        
+        <div class="p-4">
+            <div class="flex items-center mb-6">
+                <img src="https://picsum.photos/200" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                <div>
+                    <p class="font-medium">管理员</p>
+                    <p class="text-xs text-blue-200">admin@example.com</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg bg-blue-800">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    控制面板
+                </a>
+                <a href="video_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-video mr-3"></i>
+                    视音频资源管理
+                </a>
+                <a href="device_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-microchip mr-3"></i>
+                    设备管理
+                </a>
+                <a href="vehicle_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-car mr-3"></i>
+                    车载设备管理
+                </a>
+                <a href="statistics.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    数据统计
+                </a>
+                <a href="emergency_events.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-calendar-alt mr-3"></i>
+                    急救事件管理
+                </a>
+                <a href="evaluation.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    考核打分
+                </a>
+                <a href="permission_management.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-user-shield mr-3"></i>
+                    权限管理
+                </a>
+                <a href="system_settings.html" class="nav-item flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    系统设置
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 mt-auto border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                退出登录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="flex-1 overflow-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">控制面板</h2>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-500 text-xl"></i>
+                    <span id="alert-count" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center alert-badge">3</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i>
+                    <span id="current-time">2025-06-12 14:42:34</span>
+                </div>
+                <button onclick="refreshDashboard()" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition">
+                    <i class="fas fa-sync-alt mr-1"></i>刷新
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <!-- 状态卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">在线设备</p>
+                            <p id="online-devices" class="text-3xl font-bold mt-2">24</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-2 bg-gray-200 rounded-full">
+                        <div class="h-2 bg-green-500 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">离线设备</p>
+                            <p id="offline-devices" class="text-3xl font-bold mt-2">3</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i class="fas fa-exclamation-circle text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-2 bg-gray-200 rounded-full">
+                        <div class="h-2 bg-red-500 rounded-full" style="width: 11%"></div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">今日急救事件</p>
+                            <p id="emergency-events" class="text-3xl font-bold mt-2">8</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-ambulance text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-2 bg-gray-200 rounded-full">
+                        <div class="h-2 bg-blue-500 rounded-full" style="width: 80%"></div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500">存储使用率</p>
+                            <p id="storage-usage" class="text-3xl font-bold mt-2">78%</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-database text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-2 bg-gray-200 rounded-full">
+                        <div class="h-2 bg-yellow-500 rounded-full" style="width: 78%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 设备状态监控 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">设备状态监控</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="filterDevices('all')" class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            全部
+                        </button>
+                        <button onclick="filterDevices('online')" class="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            在线
+                        </button>
+                        <button onclick="filterDevices('warning')" class="px-3 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                            警告
+                        </button>
+                        <button onclick="filterDevices('offline')" class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                            离线
+                        </button>
+                        <button onclick="refreshDevices()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <i class="fas fa-sync-alt mr-1"></i>刷新
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备名称</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">位置</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后活动</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="device-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- 设备数据将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 数据统计图表 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">视音频资源统计</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="exportChartData('video')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                                <i class="fas fa-download mr-1"></i>导出
+                            </button>
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="videoChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">设备使用情况统计</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="exportChartData('device')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                                <i class="fas fa-download mr-1"></i>导出
+                            </button>
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="deviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最近急救事件 -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">最近急救事件</h3>
+                    <button onclick="viewAllEvents()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-list mr-2"></i>查看全部事件
+                    </button>
+                </div>
+                
+                <div id="emergency-events-list" class="space-y-4">
+                    <!-- 急救事件数据将通过JS动态加载 -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/monitor.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 60, density: { enable: true, value_area: 800 } },
+                    color: { value: "#1e3c72" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#1e3c72", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+                }
+            });
+
+            // 更新当前时间
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('current-time').textContent = timeStr;
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 检查登录状态
+            if(localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+
+            // 加载设备数据
+            loadDeviceData();
+            
+            // 加载急救事件数据
+            loadEmergencyEvents();
+            
+            // 初始化图表
+            initCharts();
+
+            // 刷新报警计数
+            updateAlertCount();
+        });
+
+        // 刷新整个仪表盘
+        function refreshDashboard() {
+            loadDeviceData();
+            loadEmergencyEvents();
+            updateAlertCount();
+        }
+
+        // 加载设备数据
+        function loadDeviceData() {
+            const devices = JSON.parse(localStorage.getItem('devices')) || [];
+            const onlineCount = devices.filter(d => d.status === 'online').length;
+            const offlineCount = devices.filter(d => d.status === 'offline').length;
+            const warningCount = devices.filter(d => d.status === 'warning').length;
+            
+            document.getElementById('online-devices').textContent = onlineCount;
+            document.getElementById('offline-devices').textContent = offlineCount + warningCount;
+            
+            updateDeviceTable(devices);
+        }
+
+        // 更新设备表格
+        function updateDeviceTable(devices) {
+            const tableBody = document.getElementById('device-table-body');
+            tableBody.innerHTML = devices.map(device => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${device.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.location}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${device.status === 'online' ? 'bg-green-500' : device.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'} 
+                            text-white">
+                            ${device.status === 'online' ? '在线' : device.status === 'warning' ? '警告' : '离线'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${device.lastActive}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="viewDevice('${device.id}')" class="text-blue-600 hover:text-blue-900 mr-3">查看</button>
+                        <button onclick="editDevice('${device.id}')" class="text-gray-600 hover:text-gray-900">设置</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 加载急救事件数据
+        function loadEmergencyEvents() {
+            const events = JSON.parse(localStorage.getItem('emergencyEvents')) || [];
+            document.getElementById('emergency-events').textContent = events.length;
+            
+            const eventsList = document.getElementById('emergency-events-list');
+            eventsList.innerHTML = events.map(event => `
+                <div class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                    <div class="${event.status === '处理中' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'} p-3 rounded-full mr-4">
+                        <i class="fas fa-ambulance"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium">${event.title}</h4>
+                                <p class="text-sm text-gray-500 mt-1">患者: ${event.patient} | 年龄: ${event.age}岁</p>
+                            </div>
+                            <span class="text-xs ${event.status === '处理中' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} px-2 py-1 rounded">
+                                ${event.status}
+                            </span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p><i class="far fa-clock mr-1"></i> ${event.time}</p>
+                            <p class="mt-1"><i class="fas fa-map-marker-alt mr-1"></i> ${event.location}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 更新报警计数
+        function updateAlertCount() {
+            const devices = JSON.parse(localStorage.getItem('devices')) || [];
+            const alertCount = devices.filter(d => d.status === 'warning' || d.status === 'offline').length;
+            document.getElementById('alert-count').textContent = alertCount;
+            
+            if (alertCount > 0) {
+                document.getElementById('alert-count').classList.add('alert-badge');
+            } else {
+                document.getElementById('alert-count').classList.remove('alert-badge');
+            }
+        }
+
+        // 退出登录
+        window.logout = function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        // 查看设备详情
+        window.viewDevice = function(deviceId) {
+            alert('正在开发中：查看设备详情 ' + deviceId);
+        }
+
+        // 刷新设备列表
+        window.refreshDevices = function() {
+            // 模拟从服务器获取最新数据
+            const devices = JSON.parse(localStorage.getItem('devices')) || [];
+            devices.forEach(device => {
+                if (device.status === 'online') {
+                    device.lastActive = '刚刚';
+                } else if (device.status === 'warning') {
+                    device.lastActive = '5分钟前';
+                } else {
+                    device.lastActive = '1小时前';
+                }
+            });
+            localStorage.setItem('devices', JSON.stringify(devices));
+            loadDeviceData();
+        }
+
+        // 过滤设备
+        window.filterDevices = function(status) {
+            const devices = JSON.parse(localStorage.getItem('devices')) || [];
+            let filteredDevices = devices;
+            
+            if (status !== 'all') {
+                filteredDevices = devices.filter(d => d.status === status);
+            }
+            
+            updateDeviceTable(filteredDevices);
+        }
+
+        // 查看全部事件
+        window.viewAllEvents = function() {
+            window.location.href = 'emergency_events.html';
+        }
+
+        // 导出图表数据
+        window.exportChartData = function(chartType) {
+            alert('正在开发中：导出 ' + chartType + ' 数据');
+        }
+    </script>
+</body>
+</html>
