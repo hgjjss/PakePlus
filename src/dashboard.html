@@ -1,0 +1,920 @@
+
+<!-- public_employment_service_platform_8683/frontend/dashboard.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>社会保险费信息共享系统平台 - 仪表盘</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .active-nav-item {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+        .module-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .status-active {
+            background-color: #10B981;
+        }
+        .status-warning {
+            background-color: #F59E0B;
+        }
+        .status-error {
+            background-color: #EF4444;
+        }
+        .quick-action {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .quick-action:hover {
+            transform: scale(1.05);
+        }
+        .quick-action:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: scale(0) translate(-50%, -50%);
+            transform-origin: top left;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .quick-action:active:after {
+            transform: scale(3) translate(-50%, -50%);
+            opacity: 1;
+            transition: all 0s;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .feature-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: white;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .feature-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .feature-content {
+            padding: 1.25rem;
+        }
+        .feature-footer {
+            padding: 1rem 1.25rem;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .btn {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.4);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1) translate(-50%, -50%);
+            transform-origin: center;
+        }
+        .btn:active::after {
+            animation: ripple 0.6s ease-out;
+            opacity: 0;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0) translate(-50%, -50%);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20) translate(-50%, -50%);
+                opacity: 0;
+            }
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0;
+            z-index: 50;
+        }
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+        .mobile-nav-item.active {
+            color: #6366F1;
+        }
+    </style>
+</head>
+<body class="flex">
+    <!-- 粒子背景 -->
+    <canvas id="particles" class="fixed top-0 left-0 w-full h-full" style="z-index: 0;"></canvas>
+    
+    <!-- 侧边栏 -->
+    <div class="sidebar w-64 min-h-screen text-white p-4 fixed left-0 top-0 hidden md:block">
+        <div class="flex items-center space-x-2 p-4 mb-8">
+            <i class="fas fa-briefcase text-2xl"></i>
+            <h1 class="text-xl font-bold">社会保险费信息共享系统平台</h1>
+        </div>
+        
+        <nav class="space-y-2">
+            <a href="#" class="flex items-center space-x-2 p-3 rounded-lg active-nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>仪表盘</span>
+            </a>
+            <a href="modules/registration.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-user-plus"></i>
+                <span>参保登记</span>
+                <span class="module-status status-active"></span>
+            </a>
+            <a href="modules/payment.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>缴费管理</span>
+                <span class="module-status status-warning"></span>
+            </a>
+            <a href="modules/exception.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>异常处理</span>
+                <span class="relative">
+                    <span class="notification-badge bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                </span>
+            </a>
+            <a href="modules/finance.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-calculator"></i>
+                <span>财务对账</span>
+                <span class="module-status status-active"></span>
+            </a>
+            <a href="modules/permission.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-user-shield"></i>
+                <span>权限管理</span>
+            </a>
+            <a href="modules/config.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-cog"></i>
+                <span>交易配置</span>
+            </a>
+            <a href="modules/logs.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-file-alt"></i>
+                <span>交易日志</span>
+            </a>
+            <a href="modules/query.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-search"></i>
+                <span>实时查询</span>
+            </a>
+            <a href="modules/visualization.html" class="flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200">
+                <i class="fas fa-chart-bar"></i>
+                <span>数据可视化</span>
+            </a>
+        </nav>
+
+        <!-- 退出登录按钮 -->
+        <div class="mt-auto pt-20">
+            <button id="logoutBtn" class="w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-200 text-left">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="flex-1 md:ml-64 p-6 relative z-10">
+        <!-- 顶部导航 -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="md:hidden">
+                <button id="menuToggle" class="text-gray-700 focus:outline-none bg-white p-2 rounded-lg shadow-sm">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button class="text-gray-600 bg-white p-2 rounded-full shadow-sm focus:outline-none relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="notification-badge bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">5</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+                    <img src="https://picsum.photos/40/40" alt="用户头像" class="rounded-full h-8 w-8">
+                    <span class="font-medium hidden sm:inline">管理员</span>
+                    <button class="text-gray-600 focus:outline-none">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 欢迎卡片 -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 mb-8 shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">欢迎回来，管理员！</h2>
+                    <p class="opacity-90">今天是2025年6月12日，您有<span class="font-bold">3个</span>待处理任务</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button class="quick-action bg-white bg-opacity-20 hover:bg-opacity-30 p-3 rounded-full transition duration-200 focus:outline-none">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="quick-action bg-white bg-opacity-20 hover:bg-opacity-30 p-3 rounded-full transition duration-200 focus:outline-none">
+                        <i class="fas fa-user-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快捷操作区域 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <a href="modules/registration.html" class="bg-white rounded-xl p-4 flex flex-col items-center space-y-2 shadow-sm hover:shadow-md transition duration-300 quick-action text-center">
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-user-plus text-blue-600"></i>
+                </div>
+                <span class="font-medium text-sm md:text-base">新增参保</span>
+            </a>
+            <a href="modules/query.html" class="bg-white rounded-xl p-4 flex flex-col items-center space-y-2 shadow-sm hover:shadow-md transition duration-300 quick-action text-center">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-search text-green-600"></i>
+                </div>
+                <span class="font-medium text-sm md:text-base">快速查询</span>
+            </a>
+            <a href="modules/visualization.html" class="bg-white rounded-xl p-4 flex flex-col items-center space-y-2 shadow-sm hover:shadow-md transition duration-300 quick-action text-center">
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-file-export text-purple-600"></i>
+                </div>
+                <span class="font-medium text-sm md:text-base">导出报表</span>
+            </a>
+            <a href="modules/exception.html" class="bg-white rounded-xl p-4 flex flex-col items-center space-y-2 shadow-sm hover:shadow-md transition duration-300 quick-action text-center">
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i class="fas fa-exclamation text-red-600"></i>
+                </div>
+                <span class="font-medium text-sm md:text-base">异常处理</span>
+            </a>
+        </div>
+
+        <!-- 数据概览卡片 -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-chart-line mr-2 text-blue-500"></i>
+            系统概况
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card bg-white rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-user-plus text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="module-status status-active mr-1"></span>
+                        <span class="text-sm text-gray-500">今日新增</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-1">12</h3>
+                <p class="text-gray-600 text-sm">参保登记</p>
+                <div class="mt-4 text-xs text-green-600">
+                    <i class="fas fa-arrow-up mr-1"></i>
+                    +15% 较上周
+                </div>
+            </div>
+
+            <div class="card bg-white rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="module-status status-warning mr-1"></span>
+                        <span class="text-sm text-gray-500">待处理</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-1">8</h3>
+                <p class="text-gray-600 text-sm">缴费管理</p>
+                <div class="mt-4 text-xs text-red-600">
+                    <i class="fas fa-arrow-up mr-1"></i>
+                    +5% 较上周
+                </div>
+            </div>
+
+            <div class="card bg-white rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="module-status status-error mr-1"></span>
+                        <span class="text-sm text-gray-500">紧急</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-1">3</h3>
+                <p class="text-gray-600 text-sm">异常处理</p>
+                <div class="mt-4 text-xs text-green-600">
+                    <i class="fas fa-arrow-down mr-1"></i>
+                    -12% 较上周
+                </div>
+            </div>
+
+            <div class="card bg-white rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-chart-pie text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="module-status status-active mr-1"></span>
+                        <span class="text-sm text-gray-500">完成率</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-1">92%</h3>
+                <p class="text-gray-600 text-sm">业务处理</p>
+                <div class="mt-4 text-xs text-green-600">
+                    <i class="fas fa-arrow-up mr-1"></i>
+                    +8% 较上周
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能模块卡片 -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-puzzle-piece mr-2 text-purple-500"></i>
+            业务模块
+        </h2>
+
+        <div class="card-grid mb-8">
+            <!-- 参保登记管理 -->
+            <div class="feature-card shadow-sm">
+                <div class="feature-header flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">参保登记管理</h3>
+                    <div class="flex items-center">
+                        <span class="module-status status-active mr-1"></span>
+                        <span class="text-xs text-gray-500">在线</span>
+                    </div>
+                </div>
+                <div class="feature-content">
+                    <p class="text-gray-600 text-sm mb-4">管理个人和企业的参保登记信息</p>
+                    <div class="flex space-x-2 text-xs mb-3">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">今日新增: 12</span>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">处理中: 5</span>
+                    </div>
+                </div>
+                <div class="feature-footer">
+                    <div class="flex space-x-2">
+                        <a href="modules/registration.html" class="btn flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center py-2 rounded-lg font-medium transition duration-200">
+                            <i class="fas fa-arrow-right mr-1"></i> 进入管理
+                        </a>
+                        <button class="btn bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-gray-600 transition duration-200">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 缴费管理 -->
+            <div class="feature-card shadow-sm">
+                <div class="feature-header flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">缴费管理</h3>
+                    <div class="flex items-center">
+                        <span class="module-status status-warning mr-1"></span>
+                        <span class="text-xs text-gray-500">需处理</span>
+                    </div>
+                </div>
+                <div class="feature-content">
+                    <p class="text-gray-600 text-sm mb-4">管理社保缴费记录和状态</p>
+                    <div class="flex space-x-2 text-xs mb-3">
+                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">待缴费: 8</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">已缴费: 124</span>
+                    </div>
+                </div>
+                <div class="feature-footer">
+                    <div class="flex space-x-2">
+                        <a href="modules/payment.html" class="btn flex-1 bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded-lg font-medium transition duration-200">
+                            <i class="fas fa-arrow-right mr-1"></i> 进入管理
+                        </a>
+                        <button class="btn bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-gray-600 transition duration-200">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 异常业务处理 -->
+            <div class="feature-card shadow-sm">
+                <div class="feature-header flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">异常业务处理</h3>
+                    <div class="flex items-center">
+                        <span class="module-status status-error mr-1"></span>
+                        <span class="text-xs text-red-500 font-medium">紧急</span>
+                    </div>
+                </div>
+                <div class="feature-content">
+                    <p class="text-gray-600 text-sm mb-4">处理系统异常和业务异常</p>
+                    <div class="flex space-x-2 text-xs mb-3">
+                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full">待处理: 3</span>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">已解决: 16</span>
+                    </div>
+                </div>
+                <div class="feature-footer">
+                    <div class="flex space-x-2">
+                        <a href="modules/exception.html" class="btn flex-1 bg-red-500 hover:bg-red-600 text-white text-center py-2 rounded-lg font-medium transition duration-200">
+                            <i class="fas fa-arrow-right mr-1"></i> 处理异常
+                        </a>
+                        <button class="btn bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-gray-600 transition duration-200">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 财务对账 -->
+            <div class="feature-card shadow-sm">
+                <div class="feature-header flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">财务对账</h3>
+                    <div class="flex items-center">
+                        <span class="module-status status-active mr-1"></span>
+                        <span class="text-xs text-gray-500">在线</span>
+                    </div>
+                </div>
+                <div class="feature-content">
+                    <p class="text-gray-600 text-sm mb-4">财务收支核对与报表生成</p>
+                    <div class="flex space-x-2 text-xs mb-3">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">本月对账: 56</span>
+                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">差异: 2</span>
+                    </div>
+                </div>
+                <div class="feature-footer">
+                    <div class="flex space-x-2">
+                        <a href="modules/finance.html" class="btn flex-1 bg-purple-500 hover:bg-purple-600 text-white text-center py-2 rounded-lg font-medium transition duration-200">
+                            <i class="fas fa-arrow-right mr-1"></i> 进入对账
+                        </a>
+                        <button class="btn bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-gray-600 transition duration-200">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据可视化区域 -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-chart-bar mr-2 text-green-500"></i>
+            数据概览
+        </h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card bg-white rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">参保人数趋势</h3>
+                    <div class="flex space-x-2">
+                        <button class="text-xs px-2 py-1 bg-blue-500 text-white rounded-lg">本周</button>
+                        <button class="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-lg">本月</button>
+                        <button class="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-lg">本年</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card bg-white rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">业务类型分布</h3>
+                    <button class="text-blue-500 hover:text-blue-700">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 近期活动 -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-history mr-2 text-yellow-500"></i>
+            近期活动
+        </h2>
+        
+        <div class="card bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800">系统活动记录</h3>
+                    <div>
+                        <button class="text-blue-500 hover:text-blue-700 text-sm font-medium">查看全部</button>
+                    </div>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-200">
+                <!-- 系统活动条目 -->
+                <div class="p-4 hover:bg-gray-50 transition duration-150">
+                    <div class="flex">
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-user-plus text-blue-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-900">
+                                <span class="font-medium">管理员</span> 
+                                创建了新的参保记录
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">今天 09:15</p>
+                        </div>
+                        <div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 hover:bg-gray-50 transition duration-150">
+                    <div class="flex">
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fas fa-money-bill-wave text-green-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-900">
+                                <span class="font-medium">系统</span> 
+                                处理了8笔缴费交易
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">今天 08:45</p>
+                        </div>
+                        <div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 hover:bg-gray-50 transition duration-150">
+                    <div class="flex">
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-900">
+                                <span class="font-medium">系统</span> 
+                                检测到3个异常交易
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">今天 07:30</p>
+                        </div>
+                        <div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 移动端导航 -->
+    <div class="md:hidden mobile-nav">
+        <a href="#" class="mobile-nav-item active">
+            <i class="fas fa-home mb-1 text-lg"></i>
+            <span>首页</span>
+        </a>
+        <a href="modules/registration.html" class="mobile-nav-item">
+            <i class="fas fa-user-plus mb-1 text-lg"></i>
+            <span>参保</span>
+        </a>
+        <a href="modules/payment.html" class="mobile-nav-item">
+            <i class="fas fa-money-bill-wave mb-1 text-lg"></i>
+            <span>缴费</span>
+        </a>
+        <a href="modules/exception.html" class="mobile-nav-item">
+            <i class="fas fa-exclamation-circle mb-1 text-lg"></i>
+            <span>异常</span>
+        </a>
+        <a href="#" class="mobile-nav-item">
+            <i class="fas fa-user mb-1 text-lg"></i>
+            <span>我的</span>
+        </a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.href = 'index.html';
+            }
+
+            // 粒子效果
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const particleCount = 80;
+            
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: Math.random() * 2 - 1,
+                    speedY: Math.random() * 2 - 1,
+                    color: `rgba(${Math.floor(Math.random() * 100) + 155}, ${Math.floor(Math.random() * 100) + 155}, ${Math.floor(Math.random() * 100) + 155}, 0.3)`
+                });
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    p.x += p.speedX * 0.5;
+                    p.y += p.speedY * 0.5;
+                    
+                    if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+
+            // 移动端菜单切换
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.querySelector('.sidebar');
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    if (sidebar.classList.contains('hidden')) {
+                        sidebar.classList.remove('hidden');
+                        sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50');
+                    } else {
+                        sidebar.classList.add('hidden');
+                    }
+                });
+            }
+
+            // 退出登录
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                if (confirm('确定要退出登录吗？')) {
+                    sessionStorage.removeItem('isLoggedIn');
+                    window.location.href = 'index.html';
+                }
+            });
+
+            // 图表初始化
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+            // 趋势图
+            const gradient = trendCtx.createLinearGradient(0, 0, 0, 250);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [{
+                        label: '新增参保人数',
+                        data: [320, 450, 380, 520, 480, 510],
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: "'Noto Sans SC', sans-serif",
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1E293B',
+                            bodyColor: '#475569',
+                            borderColor: 'rgba(99, 102, 241, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            titleFont: {
+                                family: "'Noto Sans SC', sans-serif",
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                family: "'Noto Sans SC', sans-serif",
+                                size: 12
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `参保人数: ${context.parsed.y} 人`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: "'Noto Sans SC', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: "'Noto Sans SC', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 饼图
+            const pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['参保登记', '缴费业务', '信息变更', '待遇申领', '其他'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(156, 163, 175, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: "'Noto Sans SC', sans-serif",
+                                    size: 12
+                                },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1E293B',
+                            bodyColor: '#475569',
+                            borderColor: 'rgba(99, 102, 241, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            usePointStyle: true,
+                            titleFont: {
+                                family: "'Noto Sans SC', sans-serif",
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                family: "'Noto Sans SC', sans-serif",
+                                size: 12
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const percentage = Math.round(value / context.dataset.data.reduce((a, b) => a + b) * 100);
+                                    return `${label}: ${value}次 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 窗口大小改变时重置画布大小
+            window.addEventListener('resize', function() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        });
+    </script>
+</body>
+</html>
