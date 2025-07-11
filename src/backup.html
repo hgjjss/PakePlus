@@ -1,0 +1,756 @@
+
+<!-- integrated_security_data_management_system_7053/frontend/backup.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>数据备份与恢复 - 一体化安全数据管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .card-hover:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .backup-card {
+            transition: all 0.3s ease;
+        }
+        .backup-card:hover {
+            transform: translateY(-5px);
+        }
+        .progress-bar {
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航栏 -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <button onclick="window.history.back()" class="mr-4 p-2 rounded-full hover:bg-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                    数据备份与恢复
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="搜索备份记录..." class="px-4 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-2.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main>
+            <!-- 功能选项卡 -->
+            <div class="flex border-b border-gray-700 mb-8">
+                <button id="backup-tab" class="px-6 py-3 font-medium tab-button active">数据备份</button>
+                <button id="restore-tab" class="px-6 py-3 font-medium tab-button">数据恢复</button>
+                <button id="history-tab" class="px-6 py-3 font-medium tab-button">备份历史</button>
+                <button id="settings-tab" class="px-6 py-3 font-medium tab-button">备份设置</button>
+            </div>
+
+            <!-- 备份功能区域 -->
+            <div id="backup-section">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- 快速备份 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg backup-card">
+                        <div class="flex items-center mb-4">
+                            <div class="text-4xl mr-4">⚡</div>
+                            <h2 class="text-xl font-bold">快速备份</h2>
+                        </div>
+                        <p class="text-gray-300 mb-6">执行增量备份，仅备份自上次备份以来更改的数据</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-400">预计时间: 1-2分钟</span>
+                            <button id="quick-backup-btn" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition">
+                                立即备份
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 完整备份 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg backup-card">
+                        <div class="flex items-center mb-4">
+                            <div class="text-4xl mr-4">🛡️</div>
+                            <h2 class="text-xl font-bold">完整备份</h2>
+                        </div>
+                        <p class="text-gray-300 mb-6">备份所有数据资产，包括加密密钥和系统配置</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-400">预计时间: 5-10分钟</span>
+                            <button id="full-backup-btn" class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700 transition">
+                                开始备份
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 自定义备份 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg backup-card">
+                        <div class="flex items-center mb-4">
+                            <div class="text-4xl mr-4">🔧</div>
+                            <h2 class="text-xl font-bold">自定义备份</h2>
+                        </div>
+                        <p class="text-gray-300 mb-6">选择特定数据资产或模块进行备份</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-400">按需配置</span>
+                            <button id="custom-backup-btn" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700 transition">
+                                配置备份
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 备份进度 -->
+                <div id="backup-progress" class="mt-8 bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold" id="backup-title">正在执行完整备份</h2>
+                        <span class="text-sm" id="backup-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar bg-gray-700 mb-2">
+                        <div id="progress-fill" class="progress-fill bg-blue-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400 mb-4">
+                        <span id="backup-processed">0 MB</span>
+                        <span id="backup-total">100 MB</span>
+                    </div>
+                    <div class="text-sm text-gray-300" id="backup-status">准备备份数据...</div>
+                    <div class="mt-4 flex justify-end">
+                        <button id="cancel-backup-btn" class="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 transition">
+                            取消备份
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 恢复功能区域 (默认隐藏) -->
+            <div id="restore-section" class="hidden">
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg mb-8">
+                    <h2 class="text-xl font-bold mb-6">从备份恢复数据</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="restore-source" class="block text-sm font-medium mb-2">恢复来源</label>
+                            <select id="restore-source" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+                                <option value="local">本地备份文件</option>
+                                <option value="cloud">云存储备份</option>
+                                <option value="history">备份历史记录</option>
+                            </select>
+                        </div>
+                        <div id="local-file-container">
+                            <label for="restore-file" class="block text-sm font-medium mb-2">选择备份文件</label>
+                            <div class="flex">
+                                <input type="file" id="restore-file" class="hidden" accept=".json,.backup">
+                                <input type="text" id="restore-file-name" class="flex-1 px-4 py-2 rounded-l-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="未选择文件" readonly>
+                                <button id="browse-file-btn" class="px-4 py-2 bg-gray-600 rounded-r-md hover:bg-gray-500 transition">
+                                    浏览...
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label for="restore-options" class="block text-sm font-medium mb-2">恢复选项</label>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <input id="restore-all" name="restore-option" type="radio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="restore-all" class="ml-3 block text-sm font-medium">完整恢复 (所有数据)</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="restore-partial" name="restore-option" type="radio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600">
+                                <label for="restore-partial" class="ml-3 block text-sm font-medium">部分恢复 (选择特定数据)</label>
+                            </div>
+                            <div class="flex items-center ml-7">
+                                <input id="overwrite-existing" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600">
+                                <label for="overwrite-existing" class="ml-3 block text-sm font-medium">覆盖现有数据</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button id="start-restore-btn" class="px-6 py-2 bg-green-600 rounded-md hover:bg-green-700 transition flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                            </svg>
+                            开始恢复
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 恢复进度 -->
+                <div id="restore-progress" class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">正在恢复数据</h2>
+                        <span class="text-sm" id="restore-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar bg-gray-700 mb-2">
+                        <div id="restore-progress-fill" class="progress-fill bg-green-500" style="width: 0%"></div>
+                    </div>
+                    <div class="text-sm text-gray-300" id="restore-status">准备恢复数据...</div>
+                    <div class="mt-4 flex justify-end">
+                        <button id="cancel-restore-btn" class="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 transition">
+                            取消恢复
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 备份历史区域 (默认隐藏) -->
+            <div id="history-section" class="hidden">
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl shadow-lg overflow-hidden mb-8">
+                    <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+                        <h2 class="text-xl font-bold">备份历史记录</h2>
+                        <div class="flex items-center space-x-2">
+                            <button id="refresh-history-btn" class="p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <button id="delete-history-btn" class="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                删除选中
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-900 bg-opacity-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        <input type="checkbox" id="select-all-history" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded">
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">备份名称</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">备份类型</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">备份时间</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">数据大小</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">状态</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700" id="history-table-body">
+                                <!-- 备份历史记录将通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页控制 -->
+                    <div class="px-6 py-4 flex items-center justify-between border-t border-gray-700">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                                上一页
+                            </button>
+                            <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                                下一页
+                            </button>
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400">
+                                    显示 <span class="font-medium">1</span> 到 <span class="font-medium">5</span> 条，共 <span class="font-medium">12</span> 条记录
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700">
+                                        <span class="sr-only">上一页</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <button aria-current="page" class="bg-blue-600 text-white relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                        1
+                                    </button>
+                                    <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                        2
+                                    </button>
+                                    <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                        3
+                                    </button>
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400">
+                                        ...
+                                    </span>
+                                    <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                        5
+                                    </button>
+                                    <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700">
+                                        <span class="sr-only">下一页</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 备份设置区域 (默认隐藏) -->
+            <div id="settings-section" class="hidden">
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg mb-8">
+                    <h2 class="text-xl font-bold mb-6">备份策略设置</h2>
+                    <form id="backup-settings-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="auto-backup" class="block text-sm font-medium mb-2">自动备份</label>
+                                <select id="auto-backup" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+                                    <option value="disabled">禁用</option>
+                                    <option value="daily">每日</option>
+                                    <option value="weekly" selected>每周</option>
+                                    <option value="monthly">每月</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="backup-time" class="block text-sm font-medium mb-2">备份时间</label>
+                                <input type="time" id="backup-time" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" value="02:00">
+                            </div>
+                            <div>
+                                <label for="backup-type" class="block text-sm font-medium mb-2">备份类型</label>
+                                <select id="backup-type" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+                                    <option value="incremental">增量备份</option>
+                                    <option value="full">完整备份</option>
+                                    <option value="mixed" selected>混合模式 (每周完整备份+每日增量)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="retention-period" class="block text-sm font-medium mb-2">保留期限</label>
+                                <select id="retention-period" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+                                    <option value="7">7天</option>
+                                    <option value="14">14天</option>
+                                    <option value="30" selected>30天</option>
+                                    <option value="90">90天</option>
+                                    <option value="180">180天</option>
+                                    <option value="365">1年</option>
+                                    <option value="forever">永久保留</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium mb-2">备份存储位置</label>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <input id="storage-local" name="storage" type="radio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                    <label for="storage-local" class="ml-3 block text-sm font-medium">本地存储</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="storage-cloud" name="storage" type="radio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600">
+                                    <label for="storage-cloud" class="ml-3 block text-sm font-medium">云存储</label>
+                                </div>
+                                <div id="cloud-settings" class="ml-7 mt-2 hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="cloud-provider" class="block text-xs font-medium mb-1">云服务商</label>
+                                            <select id="cloud-provider" class="w-full px-3 py-1 text-sm rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+                                                <option value="aws">AWS S3</option>
+                                                <option value="azure">Azure Blob</option>
+                                                <option value="google">Google Cloud</option>
+                                                <option value="aliyun">阿里云OSS</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="bucket-name" class="block text-xs font-medium mb-1">存储桶名称</label>
+                                            <input type="text" id="bucket-name" class="w-full px-3 py-1 text-sm rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium mb-2">加密选项</label>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <input id="encrypt-backup" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                    <label for="encrypt-backup" class="ml-3 block text-sm font-medium">加密备份数据</label>
+                                </div>
+                                <div class="flex items-center ml-7">
+                                    <input id="compress-backup" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                    <label for="compress-backup" class="ml-3 block text-sm font-medium">压缩备份数据</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-end">
+                            <button type="button" id="reset-settings-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition mr-3">
+                                恢复默认
+                            </button>
+                            <button type="submit" id="save-settings-btn" class="px-6 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition">
+                                保存设置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 70, density: { enable: true, value_area: 800 } },
+                    color: { value: "#3b82f6" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#3b82f6", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+
+            // 选项卡切换
+            const tabs = {
+                'backup-tab': 'backup-section',
+                'restore-tab': 'restore-section',
+                'history-tab': 'history-section',
+                'settings-tab': 'settings-section'
+            };
+
+            Object.entries(tabs).forEach(([tabId, sectionId]) => {
+                const tab = document.getElementById(tabId);
+                const section = document.getElementById(sectionId);
+
+                tab.addEventListener('click', function() {
+                    // 更新选项卡状态
+                    document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // 隐藏所有内容区
+                    Object.values(tabs).forEach(id => {
+                        document.getElementById(id).classList.add('hidden');
+                    });
+
+                    // 显示当前内容区
+                    section.classList.remove('hidden');
+                });
+            });
+
+            // 模拟备份历史数据
+            const sampleBackups = [
+                {
+                    id: 1,
+                    name: '完整备份_20250528',
+                    type: 'full',
+                    time: '2025-05-28 02:00:15',
+                    size: '2.4 GB',
+                    status: 'completed',
+                    encrypted: true,
+                    location: 'local'
+                },
+                {
+                    id: 2,
+                    name: '增量备份_20250527',
+                    type: 'incremental',
+                    time: '2025-05-27 02:00:22',
+                    size: '356 MB',
+                    status: 'completed',
+                    encrypted: true,
+                    location: 'local'
+                },
+                {
+                    id: 3,
+                    name: '完整备份_20250521',
+                    type: 'full',
+                    time: '2025-05-21 02:00:10',
+                    size: '2.3 GB',
+                    status: 'completed',
+                    encrypted: true,
+                    location: 'cloud'
+                },
+                {
+                    id: 4,
+                    name: '手动备份_20250515',
+                    type: 'full',
+                    time: '2025-05-15 14:30:45',
+                    size: '2.2 GB',
+                    status: 'completed',
+                    encrypted: false,
+                    location: 'local'
+                },
+                {
+                    id: 5,
+                    name: '增量备份_20250514',
+                    type: 'incremental',
+                    time: '2025-05-14 02:00:18',
+                    size: '420 MB',
+                    status: 'failed',
+                    encrypted: true,
+                    location: 'local'
+                }
+            ];
+
+            // 渲染备份历史表格
+            function renderBackupHistory() {
+                const tableBody = document.getElementById('history-table-body');
+                tableBody.innerHTML = '';
+
+                sampleBackups.forEach(backup => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-700 transition';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox" class="history-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded" data-id="${backup.id}">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-white">${backup.name}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-300">${backup.type === 'full' ? '完整备份' : '增量备份'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${backup.time}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${backup.size}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${backup.status === 'completed' ? 'bg-green-500' : 'bg-red-500'}">
+                                ${backup.status === 'completed' ? '成功' : '失败'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-blue-400 hover:text-blue-300 mr-3 restore-history-btn" data-id="${backup.id}">恢复</button>
+                            <button class="text-gray-400 hover:text-gray-300 download-history-btn" data-id="${backup.id}" ${backup.location === 'cloud' ? 'disabled' : ''}>下载</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // 添加恢复按钮事件
+                document.querySelectorAll('.restore-history-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        const backup = sampleBackups.find(b => b.id === id);
+                        if (backup) {
+                            alert(`正在开发中：从备份"${backup.name}"恢复数据`);
+                        }
+                    });
+                });
+
+                // 添加下载按钮事件
+                document.querySelectorAll('.download-history-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (!this.disabled) {
+                            const id = parseInt(this.getAttribute('data-id'));
+                            const backup = sampleBackups.find(b => b.id === id);
+                            if (backup) {
+                                alert(`正在开发中：下载备份"${backup.name}"`);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 初始化备份历史表格
+            renderBackupHistory();
+
+            // 全选/取消全选
+            document.getElementById('select-all-history').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.history-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            // 删除选中备份
+            document.getElementById('delete-history-btn').addEventListener('click', function() {
+                const selected = Array.from(document.querySelectorAll('.history-checkbox:checked')).map(cb => parseInt(cb.getAttribute('data-id')));
+                if (selected.length > 0) {
+                    if (confirm(`确定要删除选中的 ${selected.length} 条备份记录吗？此操作不可撤销。`)) {
+                        alert('正在开发中：删除备份记录功能');
+                    }
+                } else {
+                    alert('请先选择要删除的备份记录');
+                }
+            });
+
+            // 刷新备份历史
+            document.getElementById('refresh-history-btn').addEventListener('click', function() {
+                alert('正在开发中：刷新备份历史');
+            });
+
+            // 备份按钮事件
+            document.getElementById('quick-backup-btn').addEventListener('click', function() {
+                startBackup('incremental');
+            });
+
+            document.getElementById('full-backup-btn').addEventListener('click', function() {
+                startBackup('full');
+            });
+
+            document.getElementById('custom-backup-btn').addEventListener('click', function() {
+                alert('正在开发中：自定义备份配置');
+            });
+
+            // 开始备份模拟
+            function startBackup(type) {
+                const backupProgress = document.getElementById('backup-progress');
+                const progressFill = document.getElementById('progress-fill');
+                const backupPercentage = document.getElementById('backup-percentage');
+                const backupStatus = document.getElementById('backup-status');
+                const backupTitle = document.getElementById('backup-title');
+                const backupProcessed = document.getElementById('backup-processed');
+                const backupTotal = document.getElementById('backup-total');
+
+                backupTitle.textContent = type === 'full' ? '正在执行完整备份' : '正在执行增量备份';
+                backupTotal.textContent = type === 'full' ? '2.4 GB' : '356 MB';
+                backupProgress.classList.remove('hidden');
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 5;
+                    if (progress > 100) progress = 100;
+
+                    progressFill.style.width = `${progress}%`;
+                    backupPercentage.textContent = `${Math.floor(progress)}%`;
+                    backupProcessed.textContent = `${Math.floor((type === 'full' ? 2400 : 356) * progress / 100)} MB`;
+
+                    if (progress < 30) {
+                        backupStatus.textContent = '正在收集数据...';
+                    } else if (progress < 70) {
+                        backupStatus.textContent = '正在压缩和加密数据...';
+                    } else if (progress < 90) {
+                        backupStatus.textContent = '正在写入备份文件...';
+                    } else {
+                        backupStatus.textContent = '正在验证备份完整性...';
+                    }
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            backupStatus.textContent = '备份完成！';
+                            alert(`${type === 'full' ? '完整' : '增量'}备份成功完成`);
+                            backupProgress.classList.add('hidden');
+                            renderBackupHistory();
+                        }, 500);
+                    }
+                }, 300);
+
+                // 取消备份按钮
+                document.getElementById('cancel-backup-btn').addEventListener('click', function() {
+                    clearInterval(interval);
+                    backupProgress.classList.add('hidden');
+                    alert('备份已取消');
+                }, { once: true });
+            }
+
+            // 恢复功能
+            document.getElementById('browse-file-btn').addEventListener('click', function() {
+                document.getElementById('restore-file').click();
+            });
+
+            document.getElementById('restore-file').addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    document.getElementById('restore-file-name').value = file.name;
+                }
+            });
+
+            // 云存储选项切换
+            document.getElementById('storage-cloud').addEventListener('change', function() {
+                document.getElementById('cloud-settings').classList.remove('hidden');
+            });
+
+            document.getElementById('storage-local').addEventListener('change', function() {
+                document.getElementById('cloud-settings').classList.add('hidden');
+            });
+
+            // 开始恢复按钮
+            document.getElementById('start-restore-btn').addEventListener('click', function() {
+                const restoreProgress = document.getElementById('restore-progress');
+                const restoreProgressFill = document.getElementById('restore-progress-fill');
+                const restorePercentage = document.getElementById('restore-percentage');
+                const restoreStatus = document.getElementById('restore-status');
+
+                restoreProgress.classList.remove('hidden');
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 8;
+                    if (progress > 100) progress = 100;
+
+                    restoreProgressFill.style.width = `${progress}%`;
+                    restorePercentage.textContent = `${Math.floor(progress)}%`;
+
+                    if (progress < 40) {
+                        restoreStatus.textContent = '正在解析备份文件...';
+                    } else if (progress < 80) {
+                        restoreStatus.textContent = '正在解密数据...';
+                    } else {
+                        restoreStatus.textContent = '正在恢复数据到系统...';
+                    }
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            restoreStatus.textContent = '恢复完成！';
+                            alert('数据恢复成功完成');
+                            restoreProgress.classList.add('hidden');
+                        }, 500);
+                    }
+                }, 200);
+
+                // 取消恢复按钮
+                document.getElementById('cancel-restore-btn').addEventListener('click', function() {
+                    clearInterval(interval);
+                    restoreProgress.classList.add('hidden');
+                    alert('恢复已取消');
+                }, { once: true });
+            });
+
+            // 保存备份设置
+            document.getElementById('save-settings-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('备份设置已保存');
+            });
+
+            // 恢复默认设置
+            document.getElementById('reset-settings-btn').addEventListener('click', function() {
+                if (confirm('确定要恢复默认备份设置吗？')) {
+                    document.getElementById('backup-settings-form').reset();
+                    alert('已恢复默认设置');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
