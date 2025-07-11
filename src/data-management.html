@@ -1,0 +1,558 @@
+
+<!-- integrated_security_data_management_system_7053/frontend/data-management.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>数据资产管理 -一体化安全数据管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .table-row:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translateX(4px);
+        }
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航栏 -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <button onclick="window.history.back()" class="mr-4 p-2 rounded-full hover:bg-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                    数据资产管理
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="add-data-btn" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700 transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    新增数据
+                </button>
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="搜索数据..." class="px-4 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-2.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main>
+            <div class="bg-gray-800 bg-opacity-70 rounded-xl shadow-lg overflow-hidden mb-8">
+                <!-- 数据分类筛选 -->
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center">
+                    <span class="text-gray-400 mr-4">分类:</span>
+                    <div class="flex space-x-2">
+                        <button class="filter-btn px-3 py-1 rounded-md bg-blue-600 text-white" data-category="all">全部</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-category="personal">个人数据</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-category="financial">财务数据</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-category="health">健康数据</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-category="business">业务数据</button>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-900 bg-opacity-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">数据名称</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">分类</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">敏感级别</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">创建时间</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">最后修改</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">状态</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700" id="data-table-body">
+                            <!-- 数据行将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页控制 -->
+                <div class="px-6 py-4 flex items-center justify-between border-t border-gray-700">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <button class="relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                            上一页
+                        </button>
+                        <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                            下一页
+                        </button>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">24</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700">
+                                    <span class="sr-only">上一页</span>
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <button aria-current="page" class="bg-blue-600 text-white relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    1
+                                </button>
+                                <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    2
+                                </button>
+                                <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    3
+                                </button>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400">
+                                    ...
+                                </span>
+                                <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    8
+                                </button>
+                                <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700">
+                                    <span class="sr-only">下一页</span>
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 新增数据模态框 -->
+            <div id="add-data-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl">
+                    <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">新增数据资产</h3>
+                        <button id="close-modal-btn" class="text-gray-400 hover:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="data-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="data-name" class="block text-sm font-medium mb-2">数据名称</label>
+                                    <input type="text" id="data-name" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" required>
+                                </div>
+                                <div>
+                                    <label for="data-category" class="block text-sm font-medium mb-2">数据分类</label>
+                                    <select id="data-category" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" required>
+                                        <option value="">选择分类</option>
+                                        <option value="personal">个人数据</option>
+                                        <option value="financial">财务数据</option>
+                                        <option value="health">健康数据</option>
+                                        <option value="business">业务数据</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="data-sensitivity" class="block text-sm font-medium mb-2">敏感级别</label>
+                                    <select id="data-sensitivity" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" required>
+                                        <option value="">选择级别</option>
+                                        <option value="low">低敏感</option>
+                                        <option value="medium">中敏感</option>
+                                        <option value="high">高敏感</option>
+                                        <option value="critical">极敏感</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="data-status" class="block text-sm font-medium mb-2">数据状态</label>
+                                    <select id="data-status" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" required>
+                                        <option value="active">活跃</option>
+                                        <option value="inactive">不活跃</option>
+                                        <option value="archived">已归档</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="data-description" class="block text-sm font-medium mb-2">数据描述</label>
+                                    <textarea id="data-description" rows="3" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-700 flex justify-end space-x-3">
+                        <button id="cancel-btn" class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition">取消</button>
+                        <button id="submit-btn" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition">提交</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 70, density: { enable: true, value_area: 800 } },
+                    color: { value: "#3b82f6" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#3b82f6", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+
+            // 模拟数据
+            const sampleData = [
+                {
+                    id: 1,
+                    name: "客户个人信息表",
+                    category: "personal",
+                    sensitivity: "high",
+                    createdAt: "2025-05-10",
+                    updatedAt: "2025-05-15",
+                    status: "active",
+                    description: "包含客户姓名、联系方式等基本信息"
+                },
+                {
+                    id: 2,
+                    name: "季度财务报表",
+                    category: "financial",
+                    sensitivity: "critical",
+                    createdAt: "2025-04-01",
+                    updatedAt: "2025-05-20",
+                    status: "active",
+                    description: "公司2025年第一季度财务数据"
+                },
+                {
+                    id: 3,
+                    name: "员工健康档案",
+                    category: "health",
+                    sensitivity: "high",
+                    createdAt: "2025-03-15",
+                    updatedAt: "2025-05-18",
+                    status: "active",
+                    description: "员工年度体检报告和健康记录"
+                },
+                {
+                    id: 4,
+                    name: "市场调研数据",
+                    category: "business",
+                    sensitivity: "medium",
+                    createdAt: "2025-05-05",
+                    updatedAt: "2025-05-12",
+                    status: "active",
+                    description: "2025年Q2市场调研原始数据"
+                },
+                {
+                    id: 5,
+                    name: "旧版客户数据库",
+                    category: "personal",
+                    sensitivity: "medium",
+                    createdAt: "2024-12-01",
+                    updatedAt: "2025-03-10",
+                    status: "archived",
+                    description: "2024年及之前的客户数据存档"
+                },
+                {
+                    id: 6,
+                    name: "供应商合同",
+                    category: "business",
+                    sensitivity: "high",
+                    createdAt: "2025-01-20",
+                    updatedAt: "2025-05-05",
+                    status: "active",
+                    description: "与各供应商的合作协议"
+                },
+                {
+                    id: 7,
+                    name: "员工薪资记录",
+                    category: "financial",
+                    sensitivity: "critical",
+                    createdAt: "2025-02-01",
+                    updatedAt: "2025-05-25",
+                    status: "active",
+                    description: "2025年员工薪资发放记录"
+                },
+                {
+                    id: 8,
+                    name: "产品测试数据",
+                    category: "business",
+                    sensitivity: "low",
+                    createdAt: "2025-05-15",
+                    updatedAt: "2025-05-22",
+                    status: "active",
+                    description: "新产品Beta测试阶段数据"
+                },
+                {
+                    id: 9,
+                    name: "网站访问日志",
+                    category: "business",
+                    sensitivity: "medium",
+                    createdAt: "2025-05-01",
+                    updatedAt: "2025-05-28",
+                    status: "active",
+                    description: "公司官网访问日志数据"
+                },
+                {
+                    id: 10,
+                    name: "旧版财务报告",
+                    category: "financial",
+                    sensitivity: "high",
+                    createdAt: "2024-06-01",
+                    updatedAt: "2024-12-31",
+                    status: "archived",
+                    description: "2024年财务报告存档"
+                }
+            ];
+
+            // 渲染数据表格
+            function renderDataTable(data) {
+                const tableBody = document.getElementById('data-table-body');
+                tableBody.innerHTML = '';
+
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = 'table-row transition cursor-pointer';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-white">${item.name}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-300">${getCategoryLabel(item.category)}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="${getSensitivityClass(item.sensitivity)}">${getSensitivityLabel(item.sensitivity)}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${item.createdAt}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${item.updatedAt}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="${getStatusClass(item.status)}">${getStatusLabel(item.status)}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-blue-400 hover:text-blue-300 mr-3 edit-btn" data-id="${item.id}">编辑</button>
+                            <button class="text-red-400 hover:text-red-300 delete-btn" data-id="${item.id}">删除</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // 添加编辑和删除按钮事件
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.getAttribute('data-id'));
+                        editData(id);
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.getAttribute('data-id'));
+                        deleteData(id);
+                    });
+                });
+
+                // 添加行点击事件
+                document.querySelectorAll('.table-row').forEach(row => {
+                    row.addEventListener('click', function() {
+                        const id = parseInt(this.querySelector('.edit-btn').getAttribute('data-id'));
+                        viewDataDetails(id);
+                    });
+                });
+            }
+
+            // 辅助函数
+            function getCategoryLabel(category) {
+                const labels = {
+                    'personal': '个人数据',
+                    'financial': '财务数据',
+                    'health': '健康数据',
+                    'business': '业务数据'
+                };
+                return labels[category] || category;
+            }
+
+            function getSensitivityLabel(sensitivity) {
+                const labels = {
+                    'low': '低敏感',
+                    'medium': '中敏感',
+                    'high': '高敏感',
+                    'critical': '极敏感'
+                };
+                return labels[sensitivity] || sensitivity;
+            }
+
+            function getSensitivityClass(sensitivity) {
+                const classes = {
+                    'low': 'badge bg-green-500',
+                    'medium': 'badge bg-yellow-500',
+                    'high': 'badge bg-orange-500',
+                    'critical': 'badge bg-red-500'
+                };
+                return classes[sensitivity] || 'badge bg-gray-500';
+            }
+
+            function getStatusLabel(status) {
+                const labels = {
+                    'active': '活跃',
+                    'inactive': '不活跃',
+                    'archived': '已归档'
+                };
+                return labels[status] || status;
+            }
+
+            function getStatusClass(status) {
+                const classes = {
+                    'active': 'badge bg-blue-500',
+                    'inactive': 'badge bg-gray-500',
+                    'archived': 'badge bg-purple-500'
+                };
+                return classes[status] || 'badge bg-gray-500';
+            }
+
+            // 初始化表格
+            renderDataTable(sampleData);
+
+            // 筛选按钮事件
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // 更新按钮状态
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white');
+                        b.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                    });
+                    this.classList.add('bg-blue-600', 'text-white');
+                    this.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                    
+                    // 筛选数据
+                    if (category === 'all') {
+                        renderDataTable(sampleData);
+                    } else {
+                        const filteredData = sampleData.filter(item => item.category === category);
+                        renderDataTable(filteredData);
+                    }
+                });
+            });
+
+            // 搜索功能
+            document.getElementById('search-input').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                if (searchTerm === '') {
+                    renderDataTable(sampleData);
+                } else {
+                    const filteredData = sampleData.filter(item => 
+                        item.name.toLowerCase().includes(searchTerm) || 
+                        item.description.toLowerCase().includes(searchTerm)
+                    );
+                    renderDataTable(filteredData);
+                }
+            });
+
+            // 模态框控制
+            const modal = document.getElementById('add-data-modal');
+            const addDataBtn = document.getElementById('add-data-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+
+            addDataBtn.addEventListener('click', function() {
+                modal.classList.remove('hidden');
+                document.getElementById('data-form').reset();
+            });
+
+            closeModalBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+
+            cancelBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+
+            // 提交表单
+            document.getElementById('submit-btn').addEventListener('click', function() {
+                const form = document.getElementById('data-form');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const newData = {
+                    id: sampleData.length + 1,
+                    name: document.getElementById('data-name').value,
+                    category: document.getElementById('data-category').value,
+                    sensitivity: document.getElementById('data-sensitivity').value,
+                    status: document.getElementById('data-status').value,
+                    description: document.getElementById('data-description').value,
+                    createdAt: new Date().toISOString().split('T')[0],
+                    updatedAt: new Date().toISOString().split('T')[0]
+                };
+
+                sampleData.unshift(newData);
+                renderDataTable(sampleData);
+                modal.classList.add('hidden');
+                alert('数据添加成功！');
+            });
+
+            // 查看数据详情
+            function viewDataDetails(id) {
+                alert('正在开发中：查看数据详情功能');
+            }
+
+            // 编辑数据
+            function editData(id) {
+                alert('正在开发中：编辑数据功能');
+            }
+
+            // 删除数据
+            function deleteData(id) {
+                if (confirm('确定要删除这条数据吗？此操作不可撤销。')) {
+                    const index = sampleData.findIndex(item => item.id === id);
+                    if (index !== -1) {
+                        sampleData.splice(index, 1);
+                        renderDataTable(sampleData);
+                        alert('数据已删除');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
