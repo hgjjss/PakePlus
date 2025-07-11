@@ -1,0 +1,760 @@
+
+<!-- integrated_security_data_management_system_7053/frontend/dashboard.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>一体化安全数据管理系统 - 控制面板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #24053e 0%, #4a2075 50%, #673ab7 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+        
+        .sidebar {
+            background: rgba(25, 10, 41, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .content-area {
+            background: rgba(30, 15, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+        }
+        
+        .module-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .module-icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+            border-radius: 10px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-link.active {
+            background: rgba(156, 39, 176, 0.3);
+            border-left: 3px solid #9c27b0;
+        }
+        
+        .nav-link:hover {
+            background: rgba(156, 39, 176, 0.2);
+        }
+        
+        .header {
+            background: rgba(25, 10, 41, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff4081;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: white;
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #9c27b0;
+        }
+        
+        .particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        
+        @media (max-width: 1024px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        
+        @media (max-width: 1024px) {
+            .module-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js" class="particles-js"></div>
+    
+    <div class="flex h-screen">
+        <!-- 侧边栏 -->
+        <div class="sidebar w-64 flex flex-col hidden lg:block">
+            <div class="p-4 flex items-center space-x-3">
+                <i class="fas fa-shield-alt text-2xl text-purple-400"></i>
+                <h1 class="text-lg font-bold">一体化安全数据管理系统</h1>
+            </div>
+            
+            <div class="px-4 py-2 text-sm text-gray-400">主导航</div>
+            
+            <nav class="flex-grow">
+                <a href="#dashboard" class="nav-link flex items-center space-x-3 px-4 py-3 text-white active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表盘</span>
+                </a>
+                <a href="#assets" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-database"></i>
+                    <span>数据资产管理</span>
+                </a>
+                <a href="#auth" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-user-shield"></i>
+                    <span>身份认证与访问控制</span>
+                </a>
+                <a href="#encryption" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-lock"></i>
+                    <span>数据加密</span>
+                </a>
+                <a href="#masking" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-mask"></i>
+                    <span>数据脱敏</span>
+                </a>
+                <a href="#audit" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>安全审计</span>
+                </a>
+                <a href="#backup" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <span>数据备份与恢复</span>
+                </a>
+                <a href="#sharing" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-share-alt"></i>
+                    <span>数据共享与分发</span>
+                </a>
+                <a href="#monitor" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-tv"></i>
+                    <span>系统监控与运维</span>
+                </a>
+            </nav>
+            
+            <div class="px-4 py-2 text-sm text-gray-400">系统</div>
+            
+            <nav class="mb-8">
+                <a href="#settings" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </a>
+                <a href="#help" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-question-circle"></i>
+                    <span>帮助中心</span>
+                </a>
+                <a href="index.html" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>退出登录</span>
+                </a>
+            </nav>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航栏 -->
+            <header class="header flex items-center justify-between p-4">
+                <div class="flex items-center">
+                    <button id="sidebar-toggle" class="lg:hidden mr-4 text-2xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="search-bar px-4 py-2 flex items-center w-64">
+                        <i class="fas fa-search mr-2 text-gray-400"></i>
+                        <input type="text" placeholder="搜索..." class="w-full text-sm">
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <div class="relative tooltip">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="notification-badge">3</span>
+                        <span class="tooltip-text">通知</span>
+                    </div>
+                    <div class="relative tooltip">
+                        <i class="fas fa-cog text-xl"></i>
+                        <span class="tooltip-text">设置</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="user-avatar">
+                            <img src="https://i.pravatar.cc/150?img=52" alt="用户头像">
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium">管理员</div>
+                            <div class="text-xs text-gray-400">超级管理员</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 主要内容 -->
+            <main class="flex-1 overflow-y-auto p-4">
+                <div class="content-area p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-2xl font-bold">控制面板</h1>
+                        <div class="flex space-x-2">
+                            <button class="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors">
+                                <i class="fas fa-download mr-2"></i>生成报告
+                            </button>
+                            <div class="relative">
+                                <button class="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
+                                    <i class="fas fa-calendar-alt mr-2"></i>今日
+                                    <i class="fas fa-chevron-down ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 统计卡片 -->
+                    <div class="stats-container mb-8">
+                        <div class="stat-card p-4">
+                            <div class="text-sm text-gray-400 mb-1">总数据资产</div>
+                            <div class="text-2xl font-bold mb-2">1,285</div>
+                            <div class="flex items-center">
+                                <span class="text-green-400 mr-1"><i class="fas fa-arrow-up"></i> 12%</span>
+                                <span class="text-xs text-gray-400">较上月</span>
+                            </div>
+                        </div>
+                        <div class="stat-card p-4">
+                            <div class="text-sm text-gray-400 mb-1">敏感数据</div>
+                            <div class="text-2xl font-bold mb-2">426</div>
+                            <div class="flex items-center">
+                                <span class="text-red-400 mr-1"><i class="fas fa-arrow-up"></i> 8%</span>
+                                <span class="text-xs text-gray-400">较上月</span>
+                            </div>
+                        </div>
+                        <div class="stat-card p-4">
+                            <div class="text-sm text-gray-400 mb-1">活跃用户</div>
+                            <div class="text-2xl font-bold mb-2">72</div>
+                            <div class="flex items-center">
+                                <span class="text-green-400 mr-1"><i class="fas fa-arrow-up"></i> 3%</span>
+                                <span class="text-xs text-gray-400">较上月</span>
+                            </div>
+                        </div>
+                        <div class="stat-card p-4">
+                            <div class="text-sm text-gray-400 mb-1">安全风险</div>
+                            <div class="text-2xl font-bold mb-2">15</div>
+                            <div class="flex items-center">
+                                <span class="text-red-400 mr-1"><i class="fas fa-arrow-down"></i> 5%</span>
+                                <span class="text-xs text-gray-400">较上月</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 功能模块网格 -->
+                    <h2 class="text-xl font-semibold mb-4">功能模块</h2>
+                    <div class="module-grid mb-8">
+                        <!-- 数据资产管理 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">数据资产管理</h3>
+                            <p class="text-gray-300 text-sm mb-4">管理企业数据资产，进行分类分级和变更管理。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">1,285 个资产</span>
+                                <a href="#assets" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 身份认证与访问控制 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">身份认证与访问控制</h3>
+                            <p class="text-gray-300 text-sm mb-4">多因素认证、基于角色的访问控制及动态访问控制。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">72 个活跃用户</span>
+                                <a href="#auth" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据加密 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">数据加密</h3>
+                            <p class="text-gray-300 text-sm mb-4">传输加密、存储加密和加密密钥管理。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">128 个加密密钥</span>
+                                <a href="#encryption" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据脱敏 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-mask"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">数据脱敏</h3>
+                            <p class="text-gray-300 text-sm mb-4">敏感数据识别、脱敏规则定义和脱敏数据管理。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">426 个敏感字段</span>
+                                <a href="#masking" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 安全审计 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">安全审计</h3>
+                            <p class="text-gray-300 text-sm mb-4">操作审计、合规审计和审计报告分析。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">1,856 条审计记录</span>
+                                <a href="#audit" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据备份与恢复 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-cloud-download-alt"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">数据备份与恢复</h3>
+                            <p class="text-gray-300 text-sm mb-4">备份策略制定、备份执行监控和数据恢复。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">上次备份: 2小时前</span>
+                                <a href="#backup" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据共享与分发 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-share-alt"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">数据共享与分发</h3>
+                            <p class="text-gray-300 text-sm mb-4">共享策略管理、共享数据加密授权和分发跟踪。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">36 个共享通道</span>
+                                <a href="#sharing" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 系统监控与运维 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-tv"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">系统监控与运维</h3>
+                            <p class="text-gray-300 text-sm mb-4">系统状态监控、性能优化和故障排除。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-green-300">系统运行正常</span>
+                                <a href="#monitor" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据可视化 -->
+                        <div class="module-card p-6">
+                            <div class="module-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">数据可视化仪表盘</h3>
+                            <p class="text-gray-300 text-sm mb-4">安全态势感知与数据资产可视化分析。</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-purple-300">12 个可视化报表</span>
+                                <a href="#visualization" class="text-purple-300 hover:text-white">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 近期活动 -->
+                    <h2 class="text-xl font-semibold mb-4">近期活动</h2>
+                    <div class="bg-opacity-10 bg-white rounded-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-opacity-20 bg-white">
+                                        <th class="px-4 py-3 text-left text-sm font-medium">活动</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium">用户</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium">时间</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium">状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-t border-gray-700">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-database mr-3 text-purple-400"></i>
+                                                <span>新增数据资产</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">admin</td>
+                                        <td class="px-4 py-3">2025-05-06 21:15</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-green-900 bg-opacity-50 text-green-300 rounded-full text-xs">成功</span></td>
+                                    </tr>
+                                    <tr class="border-t border-gray-700">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-user-shield mr-3 text-purple-400"></i>
+                                                <span>用户权限调整</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">admin</td>
+                                        <td class="px-4 py-3">2025-05-06 20:30</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-green-900 bg-opacity-50 text-green-300 rounded-full text-xs">成功</span></td>
+                                    </tr>
+                                    <tr class="border-t border-gray-700">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-clipboard-list mr-3 text-purple-400"></i>
+                                                <span>合规审计报告生成</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">system</td>
+                                        <td class="px-4 py-3">2025-05-06 18:45</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-green-900 bg-opacity-50 text-green-300 rounded-full text-xs">成功</span></td>
+                                    </tr>
+                                    <tr class="border-t border-gray-700">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-cloud-download-alt mr-3 text-purple-400"></i>
+                                                <span>数据自动备份</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">system</td>
+                                        <td class="px-4 py-3">2025-05-06 18:00</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-green-900 bg-opacity-50 text-green-300 rounded-full text-xs">成功</span></td>
+                                    </tr>
+                                    <tr class="border-t border-gray-700">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-mask mr-3 text-purple-400"></i>
+                                                <span>数据脱敏操作</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">user1</td>
+                                        <td class="px-4 py-3">2025-05-06 16:22</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-yellow-900 bg-opacity-50 text-yellow-300 rounded-full text-xs">审核中</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            
+            <!-- 底部 -->
+            <footer class="px-6 py-3 bg-opacity-20 bg-black text-center text-sm text-gray-400">
+                © 2025 一体化安全数据管理系统 | 版本 v1.0.0
+            </footer>
+        </div>
+    </div>
+    
+    <!-- 移动端侧边栏 -->
+    <div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="sidebar w-64 h-full flex flex-col">
+            <div class="p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-shield-alt text-2xl text-purple-400"></i>
+                    <h1 class="text-lg font-bold">安全数据管理系统</h1>
+                </div>
+                <button id="close-sidebar" class="text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="px-4 py-2 text-sm text-gray-400">主导航</div>
+            
+            <nav class="flex-grow">
+                <a href="#dashboard" class="nav-link flex items-center space-x-3 px-4 py-3 text-white active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表盘</span>
+                </a>
+                <a href="#assets" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-database"></i>
+                    <span>数据资产管理</span>
+                </a>
+                <a href="#auth" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-user-shield"></i>
+                    <span>身份认证与访问控制</span>
+                </a>
+                <a href="#encryption" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-lock"></i>
+                    <span>数据加密</span>
+                </a>
+                <a href="#masking" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-mask"></i>
+                    <span>数据脱敏</span>
+                </a>
+                <a href="#audit" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>安全审计</span>
+                </a>
+                <a href="#backup" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <span>数据备份与恢复</span>
+                </a>
+                <a href="#sharing" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-share-alt"></i>
+                    <span>数据共享与分发</span>
+                </a>
+                <a href="#monitor" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-tv"></i>
+                    <span>系统监控与运维</span>
+                </a>
+            </nav>
+            
+            <div class="px-4 py-2 text-sm text-gray-400">系统</div>
+            
+            <nav class="mb-8">
+                <a href="#settings" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </a>
+                <a href="#help" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-question-circle"></i>
+                    <span>帮助中心</span>
+                </a>
+                <a href="index.html" class="nav-link flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>退出登录</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 40, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#ffffff",
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 1,
+                        direction: "none",
+                        random: false,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "grab" },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
+
+            // 移动端侧边栏控制
+            const mobileSidebar = document.getElementById('mobile-sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const closeSidebar = document.getElementById('close-sidebar');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    mobileSidebar.classList.remove('hidden');
+                });
+            }
+
+            if (closeSidebar) {
+                closeSidebar.addEventListener('click', function() {
+                    mobileSidebar.classList.add('hidden');
+                });
+            }
+
+            // 点击功能模块卡片时的提示
+            const moduleCards = document.querySelectorAll('.module-card');
+            moduleCards.forEach(card => {
+                const moduleLink = card.querySelector('a');
+                if (moduleLink) {
+                    moduleLink.addEventListener('click', function(e) {
+                        const moduleName = card.querySelector('h3').textContent;
+                        
+                        // 只有仪表盘功能可用，其他模块显示开发中提示
+                        if (!this.getAttribute('href').includes('dashboard')) {
+                            e.preventDefault();
+                            alert(`${moduleName} 功能正在开发中，敬请期待！`);
+                        }
+                    });
+                }
+            });
+
+            // 导航链接点击事件
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    
+                    // 只有仪表盘和退出登录功能可用
+                    if (!href.includes('dashboard') && !href.includes('index.html')) {
+                        e.preventDefault();
+                        const moduleName = this.querySelector('span').textContent;
+                        alert(`${moduleName} 功能正在开发中，敬请期待！`);
+                    }
+                    
+                    // 在移动端关闭侧边栏
+                    if (window.innerWidth < 1024) {
+                        mobileSidebar.classList.add('hidden');
+                    }
+                });
+            });
+
+            // 页面加载时检查登录状态
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                // 未登录则跳转到登录页
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/audit.js"></script>
+</body>
+</html>
