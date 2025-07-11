@@ -1,32 +1,917 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+<!-- report_auto_generation_analysis_system/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>基于报表自动生成的数据分析系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+            transform: scale(1.02);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .nav-item {
+            position: relative;
+        }
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        .nav-item:hover::after {
+            width: 100%;
+        }
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+        .btn-action:active {
+            transform: translateY(2px);
+        }
+        .btn-secondary {
+            background: linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%);
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(90deg, #38b2ac 0%, #4fd1c5 100%);
+            transform: scale(1.02);
+        }
+        .btn-tertiary {
+            background: linear-gradient(90deg, #f6ad55 0%, #ed8936 100%);
+        }
+        .btn-tertiary:hover {
+            background: linear-gradient(90deg, #ed8936 0%, #f6ad55 100%);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <header class="flex justify-between items-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+                    基于报表自动生成的数据分析系统
+                </span>
+            </h1>
+            <div id="user-info" class="hidden">
+                <span id="username" class="font-medium text-gray-700 mr-4"></span>
+                <button id="logout-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                    退出登录
+                </button>
             </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
+            <div id="login-register">
+                <button id="login-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium mr-2 btn-action">
+                    登录
+                </button>
+                <button id="register-btn" class="border border-purple-600 text-purple-600 px-4 py-2 rounded-full text-sm font-medium btn-action">
+                    注册
+                </button>
             </div>
+        </header>
+
+        <nav class="flex justify-center mb-12">
+            <ul class="flex space-x-8">
+                <li class="nav-item">
+                    <a href="#data-collection" class="text-gray-700 font-medium py-2">数据采集</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#report-generation" class="text-gray-700 font-medium py-2">报表生成</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#data-analysis" class="text-gray-700 font-medium py-2">数据分析</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#data-visualization" class="text-gray-700 font-medium py-2">数据可视化</a>
+                </li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- 数据采集模块 -->
+            <section id="data-collection" class="mb-16">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-purple-100 text-purple-600 p-2 rounded-full mr-3">📊</span>
+                    数据采集与处理
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">从文件导入</h3>
+                        <p class="text-gray-600 mb-4">支持Excel、CSV等格式文件导入</p>
+                        <input type="file" id="file-upload" class="hidden" accept=".xlsx,.xls,.csv">
+                        <button id="upload-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium w-full btn-action">
+                            选择文件
+                        </button>
+                    </div>
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">数据库连接</h3>
+                        <p class="text-gray-600 mb-4">连接MySQL、PostgreSQL等数据库</p>
+                        <button id="db-connect-btn" class="btn-secondary text-white px-4 py-2 rounded-full text-sm font-medium w-full btn-action">
+                            配置连接
+                        </button>
+                    </div>
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">API接口</h3>
+                        <p class="text-gray-600 mb-4">通过RESTful API获取数据</p>
+                        <button id="api-connect-btn" class="btn-tertiary text-white px-4 py-2 rounded-full text-sm font-medium w-full btn-action">
+                            配置API
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 报表生成模块 -->
+            <section id="report-generation" class="mb-16">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-blue-100 text-blue-600 p-2 rounded-full mr-3">📝</span>
+                    报表生成
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">自定义模板</h3>
+                        <p class="text-gray-600 mb-4">创建或修改报表模板</p>
+                        <button id="template-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium w-full btn-action">
+                            模板管理
+                        </button>
+                    </div>
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">生成报表</h3>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">选择报表类型</label>
+                            <select id="report-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="daily">日报</option>
+                                <option value="weekly">周报</option>
+                                <option value="monthly">月报</option>
+                                <option value="yearly">年报</option>
+                            </select>
+                        </div>
+                        <button id="generate-report-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium w-full btn-action">
+                            生成报表
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 数据分析模块 -->
+            <section id="data-analysis" class="mb-16">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-green-100 text-green-600 p-2 rounded-full mr-3">🔍</span>
+                    数据分析
+                </h2>
+                <div class="card rounded-xl p-6 shadow-md">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">数据筛选与分析</h3>
+                        <div class="flex space-x-2">
+                            <button id="filter-btn" class="border border-purple-600 text-purple-600 px-4 py-1 rounded-full text-sm font-medium btn-action">
+                                筛选
+                            </button>
+                            <button id="sort-btn" class="border border-purple-600 text-purple-600 px-4 py-1 rounded-full text-sm font-medium btn-action">
+                                排序
+                            </button>
+                            <button id="calculate-btn" class="border border-purple-600 text-purple-600 px-4 py-1 rounded-full text-sm font-medium btn-action">
+                                计算
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">销售额</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">产品</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">地区</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-table" class="divide-y divide-gray-200">
+                                <!-- 数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 数据可视化模块 -->
+            <section id="data-visualization" class="mb-16">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-yellow-100 text-yellow-600 p-2 rounded-full mr-3">📈</span>
+                    数据可视化
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">销售趋势</h3>
+                            <select id="chart-period" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="day">日</option>
+                                <option value="week">周</option>
+                                <option value="month">月</option>
+                            </select>
+                        </div>
+                        <canvas id="line-chart" height="250"></canvas>
+                    </div>
+                    <div class="card rounded-xl p-6 shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">产品占比</h3>
+                            <select id="chart-region" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="all">全部地区</option>
+                                <option value="north">北部</option>
+                                <option value="south">南部</option>
+                                <option value="east">东部</option>
+                                <option value="west">西部</option>
+                            </select>
+                        </div>
+                        <canvas id="pie-chart" height="250"></canvas>
+                    </div>
+                </div>
+            </section>
         </main>
-    </body>
+
+        <footer class="text-center py-8 text-gray-500 text-sm">
+            <p>© 2025 基于报表自动生成的数据分析系统. 保留所有权利.</p>
+        </footer>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="auth-modal-title" class="text-xl font-bold text-gray-800">登录</h3>
+                <button id="close-auth-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="auth-form">
+                <div class="mb-4">
+                    <label for="username-input" class="block text-gray-700 text-sm font-medium mb-2">用户名</label>
+                    <input type="text" id="username-input" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password-input" class="block text-gray-700 text-sm font-medium mb-2">密码</label>
+                    <input type="password" id="password-input" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <button type="submit" id="auth-submit-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium w-full btn-action">
+                    提交
+                </button>
+            </form>
+            <p id="auth-switch-text" class="text-center mt-4 text-sm text-gray-600">
+                还没有账号？<button id="auth-switch-btn" class="text-purple-600 font-medium">立即注册</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- 数据库连接配置模态框 -->
+    <div id="db-config-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">数据库连接配置</h3>
+                <button id="close-db-config" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="db-config-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">数据库类型</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="mysql">MySQL</option>
+                        <option value="postgresql">PostgreSQL</option>
+                        <option value="sqlserver">SQL Server</option>
+                        <option value="oracle">Oracle</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">主机地址</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="localhost">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">端口</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="3306">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">用户名</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">密码</label>
+                    <input type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="test-db-connection" class="border border-purple-600 text-purple-600 px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        测试连接
+                    </button>
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        保存配置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- API配置模态框 -->
+    <div id="api-config-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">API接口配置</h3>
+                <button id="close-api-config" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="api-config-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">API名称</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="销售数据API">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">API地址</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="https://api.example.com/data">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">请求方法</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="get">GET</option>
+                        <option value="post">POST</option>
+                        <option value="put">PUT</option>
+                        <option value="delete">DELETE</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">认证密钥</label>
+                    <input type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="可选">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="test-api-connection" class="border border-purple-600 text-purple-600 px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        测试连接
+                    </button>
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        保存配置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 模板管理模态框 -->
+    <div id="template-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">报表模板管理</h3>
+                <button id="close-template-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="card p-4 cursor-pointer hover:bg-purple-50 transition-colors">
+                    <h4 class="font-medium text-gray-800 mb-2">日报模板</h4>
+                    <p class="text-sm text-gray-600">包含销售概览和热门产品</p>
+                </div>
+                <div class="card p-4 cursor-pointer hover:bg-purple-50 transition-colors">
+                    <h4 class="font-medium text-gray-800 mb-2">周报模板</h4>
+                    <p class="text-sm text-gray-600">包含周销售趋势和区域表现</p>
+                </div>
+                <div class="card p-4 cursor-pointer hover:bg-purple-50 transition-colors">
+                    <h4 class="font-medium text-gray-800 mb-2">月报模板</h4>
+                    <p class="text-sm text-gray-600">包含月度总结和产品分析</p>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-medium text-gray-800">自定义模板</h4>
+                <button id="add-template-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                    添加模板
+                </button>
+            </div>
+            <div class="overflow-y-auto max-h-64">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">模板名称</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">销售分析模板</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-01</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button class="text-purple-600 hover:text-purple-900 mr-3 btn-action">编辑</button>
+                                <button class="text-red-600 hover:text-red-900 btn-action">删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="save-templates-btn" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                    保存更改
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 筛选条件模态框 -->
+    <div id="filter-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">数据筛选</h3>
+                <button id="close-filter-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="filter-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">筛选字段</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="date">日期</option>
+                        <option value="product">产品</option>
+                        <option value="region">地区</option>
+                        <option value="sales">销售额</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">筛选条件</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="equals">等于</option>
+                        <option value="contains">包含</option>
+                        <option value="gt">大于</option>
+                        <option value="lt">小于</option>
+                        <option value="between">介于</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">筛选值</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="add-filter-btn" class="border border-purple-600 text-purple-600 px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        添加条件
+                    </button>
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        应用筛选
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 排序条件模态框 -->
+    <div id="sort-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">数据排序</h3>
+                <button id="close-sort-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="sort-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">排序字段</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="date">日期</option>
+                        <option value="product">产品</option>
+                        <option value="region">地区</option>
+                        <option value="sales">销售额</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">排序方式</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="asc">升序</option>
+                        <option value="desc">降序</option>
+                    </select>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        应用排序
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 计算功能模态框 -->
+    <div id="calculate-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">数据计算</h3>
+                <button id="close-calculate-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="calculate-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">计算类型</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="sum">求和</option>
+                        <option value="avg">平均值</option>
+                        <option value="max">最大值</option>
+                        <option value="min">最小值</option>
+                        <option value="count">计数</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">计算字段</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="sales">销售额</option>
+                        <option value="quantity">数量</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">分组字段</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="none">不分组</option>
+                        <option value="product">按产品</option>
+                        <option value="region">按地区</option>
+                        <option value="date">按日期</option>
+                    </select>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-full text-sm font-medium btn-action">
+                        执行计算
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#667eea" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#667eea", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+
+            // 模拟数据加载
+            loadSampleData();
+            initCharts();
+            setupEventListeners();
+        });
+
+        function loadSampleData() {
+            const sampleData = [
+                { id: 1, date: '2025-06-01', sales: 12000, product: '产品A', region: '北部' },
+                { id: 2, date: '2025-06-02', sales: 8500, product: '产品B', region: '南部' },
+                { id: 3, date: '2025-06-03', sales: 15000, product: '产品C', region: '东部' },
+                { id: 4, date: '2025-06-04', sales: 9800, product: '产品A', region: '西部' },
+                { id: 5, date: '2025-06-05', sales: 11200, product: '产品B', region: '北部' }
+            ];
+
+            const tableBody = document.getElementById('data-table');
+            tableBody.innerHTML = sampleData.map(item => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥${item.sales.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.product}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.region}</td>
+                </tr>
+            `).join('');
+        }
+
+        function initCharts() {
+            // 折线图
+            const lineCtx = document.getElementById('line-chart').getContext('2d');
+            new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [{
+                        label: '销售额',
+                        data: [12000, 19000, 15000, 18000, 21000, 25000],
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 饼图
+            const pieCtx = document.getElementById('pie-chart').getContext('2d');
+            new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['产品A', '产品B', '产品C', '产品D'],
+                    datasets: [{
+                        data: [35, 25, 20, 20],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.7)',
+                            'rgba(118, 75, 162, 0.7)',
+                            'rgba(234, 102, 118, 0.7)',
+                            'rgba(102, 234, 126, 0.7)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        function setupEventListeners() {
+            // 登录/注册切换
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const authModal = document.getElementById('auth-modal');
+            const authModalTitle = document.getElementById('auth-modal-title');
+            const authSubmitBtn = document.getElementById('auth-submit-btn');
+            const authSwitchText = document.getElementById('auth-switch-text');
+            const authSwitchBtn = document.getElementById('auth-switch-btn');
+            const closeAuthModal = document.getElementById('close-auth-modal');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            const loginRegister = document.getElementById('login-register');
+
+            let isLoginMode = true;
+
+            loginBtn.addEventListener('click', () => {
+                isLoginMode = true;
+                authModalTitle.textContent = '登录';
+                authSubmitBtn.textContent = '登录';
+                authSwitchText.innerHTML = '还没有账号？<button id="auth-switch-btn" class="text-purple-600 font-medium">立即注册</button>';
+                authModal.classList.remove('hidden');
+            });
+
+            registerBtn.addEventListener('click', () => {
+                isLoginMode = false;
+                authModalTitle.textContent = '注册';
+                authSubmitBtn.textContent = '注册';
+                authSwitchText.innerHTML = '已有账号？<button id="auth-switch-btn" class="text-purple-600 font-medium">立即登录</button>';
+                authModal.classList.remove('hidden');
+            });
+
+            authSwitchBtn.addEventListener('click', () => {
+                isLoginMode = !isLoginMode;
+                if (isLoginMode) {
+                    authModalTitle.textContent = '登录';
+                    authSubmitBtn.textContent = '登录';
+                    authSwitchText.innerHTML = '还没有账号？<button id="auth-switch-btn" class="text-purple-600 font-medium">立即注册</button>';
+                } else {
+                    authModalTitle.textContent = '注册';
+                    authSubmitBtn.textContent = '注册';
+                    authSwitchText.innerHTML = '已有账号？<button id="auth-switch-btn" class="text-purple-600 font-medium">立即登录</button>';
+                }
+            });
+
+            closeAuthModal.addEventListener('click', () => {
+                authModal.classList.add('hidden');
+            });
+
+            document.getElementById('auth-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username-input').value;
+                
+                // 模拟登录/注册成功
+                userInfo.classList.remove('hidden');
+                loginRegister.classList.add('hidden');
+                document.getElementById('username').textContent = username;
+                authModal.classList.add('hidden');
+                
+                alert(isLoginMode ? '登录成功！' : '注册成功！');
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                userInfo.classList.add('hidden');
+                loginRegister.classList.remove('hidden');
+                alert('已退出登录');
+            });
+
+            // 文件上传
+            document.getElementById('upload-btn').addEventListener('click', () => {
+                document.getElementById('file-upload').click();
+            });
+
+            document.getElementById('file-upload').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    alert(`已选择文件: ${e.target.files[0].name}`);
+                    // 实际应用中这里会有文件处理逻辑
+                }
+            });
+
+            // 数据库连接配置
+            const dbConnectBtn = document.getElementById('db-connect-btn');
+            const dbConfigModal = document.getElementById('db-config-modal');
+            const closeDbConfig = document.getElementById('close-db-config');
+            const testDbConnection = document.getElementById('test-db-connection');
+
+            dbConnectBtn.addEventListener('click', () => {
+                dbConfigModal.classList.remove('hidden');
+            });
+
+            closeDbConfig.addEventListener('click', () => {
+                dbConfigModal.classList.add('hidden');
+            });
+
+            testDbConnection.addEventListener('click', () => {
+                // 模拟测试连接
+                setTimeout(() => {
+                    alert('数据库连接测试成功！');
+                }, 1000);
+            });
+
+            document.getElementById('db-config-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                dbConfigModal.classList.add('hidden');
+                alert('数据库配置已保存');
+            });
+
+            // API连接配置
+            const apiConnectBtn = document.getElementById('api-connect-btn');
+            const apiConfigModal = document.getElementById('api-config-modal');
+            const closeApiConfig = document.getElementById('close-api-config');
+            const testApiConnection = document.getElementById('test-api-connection');
+
+            apiConnectBtn.addEventListener('click', () => {
+                apiConfigModal.classList.remove('hidden');
+            });
+
+            closeApiConfig.addEventListener('click', () => {
+                apiConfigModal.classList.add('hidden');
+            });
+
+            testApiConnection.addEventListener('click', () => {
+                // 模拟测试连接
+                setTimeout(() => {
+                    alert('API连接测试成功！');
+                }, 800);
+            });
+
+            document.getElementById('api-config-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                apiConfigModal.classList.add('hidden');
+                alert('API配置已保存');
+            });
+
+            // 模板管理
+            const templateBtn = document.getElementById('template-btn');
+            const templateModal = document.getElementById('template-modal');
+            const closeTemplateModal = document.getElementById('close-template-modal');
+            const addTemplateBtn = document.getElementById('add-template-btn');
+            const saveTemplatesBtn = document.getElementById('save-templates-btn');
+
+            templateBtn.addEventListener('click', () => {
+                templateModal.classList.remove('hidden');
+            });
+
+            closeTemplateModal.addEventListener('click', () => {
+                templateModal.classList.add('hidden');
+            });
+
+            addTemplateBtn.addEventListener('click', () => {
+                alert('添加新模板功能正在开发中');
+            });
+
+            saveTemplatesBtn.addEventListener('click', () => {
+                templateModal.classList.add('hidden');
+                alert('模板更改已保存');
+            });
+
+            // 生成报表
+            document.getElementById('generate-report-btn').addEventListener('click', () => {
+                const reportType = document.getElementById('report-type').value;
+                alert(`正在生成${reportType}报表...`);
+            });
+
+            // 筛选功能
+            const filterBtn = document.getElementById('filter-btn');
+            const filterModal = document.getElementById('filter-modal');
+            const closeFilterModal = document.getElementById('close-filter-modal');
+            const addFilterBtn = document.getElementById('add-filter-btn');
+
+            filterBtn.addEventListener('click', () => {
+                filterModal.classList.remove('hidden');
+            });
+
+            closeFilterModal.addEventListener('click', () => {
+                filterModal.classList.add('hidden');
+            });
+
+            addFilterBtn.addEventListener('click', () => {
+                alert('添加筛选条件功能正在开发中');
+            });
+
+            document.getElementById('filter-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                filterModal.classList.add('hidden');
+                alert('筛选条件已应用');
+            });
+
+            // 排序功能
+            const sortBtn = document.getElementById('sort-btn');
+            const sortModal = document.getElementById('sort-modal');
+            const closeSortModal = document.getElementById('close-sort-modal');
+
+            sortBtn.addEventListener('click', () => {
+                sortModal.classList.remove('hidden');
+            });
+
+            closeSortModal.addEventListener('click', () => {
+                sortModal.classList.add('hidden');
+            });
+
+            document.getElementById('sort-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                sortModal.classList.add('hidden');
+                alert('排序条件已应用');
+            });
+
+            // 计算功能
+            const calculateBtn = document.getElementById('calculate-btn');
+            const calculateModal = document.getElementById('calculate-modal');
+            const closeCalculateModal = document.getElementById('close-calculate-modal');
+
+            calculateBtn.addEventListener('click', () => {
+                calculateModal.classList.remove('hidden');
+            });
+
+            closeCalculateModal.addEventListener('click', () => {
+                calculateModal.classList.add('hidden');
+            });
+
+            document.getElementById('calculate-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                calculateModal.classList.add('hidden');
+                alert('计算功能已执行');
+            });
+        }
+    </script>
+</body>
 </html>
