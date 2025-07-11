@@ -1,0 +1,510 @@
+
+<!-- integrated_security_data_management_system_7053/frontend/audit.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>安全审计 - 一体化安全数据管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .table-row:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translateX(4px);
+        }
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .log-type {
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航栏 -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <button onclick="window.history.back()" class="mr-4 p-2 rounded-full hover:bg-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                    安全审计日志
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="搜索操作记录..." class="px-4 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-2.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <button id="export-btn" class="px-4 py-2 bg-green-600 rounded-md hover:bg-green-700 transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    导出日志
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main>
+            <div class="bg-gray-800 bg-opacity-70 rounded-xl shadow-lg overflow-hidden mb-8">
+                <!-- 日志筛选 -->
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center">
+                    <span class="text-gray-400 mr-4">筛选:</span>
+                    <div class="flex space-x-2">
+                        <button class="filter-btn px-3 py-1 rounded-md bg-blue-600 text-white" data-type="all">全部</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-type="login">登录</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-type="data">数据操作</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-type="system">系统操作</button>
+                        <button class="filter-btn px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600" data-type="security">安全事件</button>
+                    </div>
+                    <div class="ml-auto flex items-center">
+                        <label for="date-range" class="text-gray-400 mr-2">日期范围:</label>
+                        <select id="date-range" class="px-3 py-1 bg-gray-700 rounded-md border border-gray-600">
+                            <option value="all">全部时间</option>
+                            <option value="today">今天</option>
+                            <option value="week">本周</option>
+                            <option value="month">本月</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 日志表格 -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-900 bg-opacity-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">时间</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">类型</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">操作用户</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">操作内容</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">IP地址</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">状态</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">详情</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700" id="audit-table-body">
+                            <!-- 日志行将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页控制 -->
+                <div class="px-6 py-4 flex items-center justify-between border-t border-gray-700">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <button class="relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                            上一页
+                        </button>
+                        <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                            下一页
+                        </button>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">24</span> 条记录
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700">
+                                    <span class="sr-only">上一页</span>
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <button aria-current="page" class="bg-blue-600 text-white relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    1
+                                </button>
+                                <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    2
+                                </button>
+                                <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    3
+                                </button>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400">
+                                    ...
+                                </span>
+                                <button class="bg-gray-800 text-gray-300 hover:bg-gray-700 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium">
+                                    8
+                                </button>
+                                <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700">
+                                    <span class="sr-only">下一页</span>
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日志详情模态框 -->
+            <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl">
+                    <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">审计日志详情</h3>
+                        <button id="close-detail-btn" class="text-gray-400 hover:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-400 mb-1">时间</h4>
+                                <p id="detail-time" class="text-white">2025-05-28 14:30:22</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-400 mb-1">类型</h4>
+                                <p id="detail-type" class="text-white"><span class="log-type bg-blue-500">数据操作</span></p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-400 mb-1">用户</h4>
+                                <p id="detail-user" class="text-white">admin</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-400 mb-1">IP地址</h4>
+                                <p id="detail-ip" class="text-white">192.168.1.100</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-400 mb-1">状态</h4>
+                                <p id="detail-status" class="text-white"><span class="badge bg-green-500">成功</span></p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-400 mb-1">操作模块</h4>
+                                <p id="detail-module" class="text-white">数据资产管理</p>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="text-sm font-medium text-gray-400 mb-2">操作详情</h4>
+                            <div id="detail-content" class="bg-gray-700 p-4 rounded-md text-sm text-gray-300 whitespace-pre-wrap"></div>
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="text-sm font-medium text-gray-400 mb-2">附加信息</h4>
+                            <div id="detail-extra" class="bg-gray-700 p-4 rounded-md text-sm text-gray-300 whitespace-pre-wrap"></div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-700 flex justify-end">
+                        <button id="close-detail-btn2" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 60, density: { enable: true, value_area: 800 } },
+                    color: { value: "#3b82f6" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#3b82f6", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+
+            // 模拟日志数据
+            const sampleLogs = [
+                {
+                    id: 1,
+                    time: '2025-05-28 14:30:22',
+                    type: 'data',
+                    user: 'admin',
+                    content: '修改了数据资产"客户个人信息表"的敏感级别为"高敏感"',
+                    ip: '192.168.1.100',
+                    status: 'success',
+                    module: '数据资产管理',
+                    extra: '操作前值: 中敏感\n操作后值: 高敏感'
+                },
+                {
+                    id: 2,
+                    time: '2025-05-28 13:45:10',
+                    type: 'login',
+                    user: 'user1',
+                    content: '用户登录系统',
+                    ip: '192.168.1.105',
+                    status: 'success',
+                    module: '身份认证',
+                    extra: '登录方式: 密码\n设备信息: Chrome/Windows 10'
+                },
+                {
+                    id: 3,
+                    time: '2025-05-28 11:20:33',
+                    type: 'data',
+                    user: 'user2',
+                    content: '新增数据资产"2025年Q2市场调研数据"',
+                    ip: '192.168.1.120',
+                    status: 'success',
+                    module: '数据资产管理',
+                    extra: '分类: 业务数据\n敏感级别: 中敏感'
+                },
+                {
+                    id: 4,
+                    time: '2025-05-28 10:15:05',
+                    type: 'security',
+                    user: 'system',
+                    content: '检测到异常登录尝试',
+                    ip: '192.168.1.200',
+                    status: 'warning',
+                    module: '安全防护',
+                    extra: '尝试用户名: admin\n失败次数: 5次\n已触发账户锁定'
+                },
+                {
+                    id: 5,
+                    time: '2025-05-27 16:40:18',
+                    type: 'system',
+                    user: 'admin',
+                    content: '修改了系统配置"密码策略"',
+                    ip: '192.168.1.100',
+                    status: 'success',
+                    module: '系统设置',
+                    extra: '修改内容: 密码最小长度从8改为12\n强制包含特殊字符: 是'
+                },
+                {
+                    id: 6,
+                    time: '2025-05-27 09:25:42',
+                    type: 'data',
+                    user: 'user3',
+                    content: '尝试访问未授权数据"员工薪资记录"',
+                    ip: '192.168.1.115',
+                    status: 'failed',
+                    module: '数据资产管理',
+                    extra: '所需权限: 财务部\n用户权限: 市场部'
+                },
+                {
+                    id: 7,
+                    time: '2025-05-26 18:10:30',
+                    type: 'system',
+                    user: 'system',
+                    content: '系统自动备份完成',
+                    ip: '192.168.1.1',
+                    status: 'success',
+                    module: '数据备份',
+                    extra: '备份大小: 2.4GB\n存储位置: 备份服务器01'
+                },
+                {
+                    id: 8,
+                    time: '2025-05-26 14:55:12',
+                    type: 'login',
+                    user: 'admin',
+                    content: '用户登出系统',
+                    ip: '192.168.1.100',
+                    status: 'success',
+                    module: '身份认证',
+                    extra: '会话时长: 3小时25分钟'
+                },
+                {
+                    id: 9,
+                    time: '2025-05-26 11:30:45',
+                    type: 'security',
+                    user: 'user4',
+                    content: '密码修改成功',
+                    ip: '192.168.1.130',
+                    status: 'success',
+                    module: '身份认证',
+                    extra: '上次修改时间: 2025-04-15'
+                },
+                {
+                    id: 10,
+                    time: '2025-05-25 17:20:00',
+                    type: 'data',
+                    user: 'admin',
+                    content: '删除了数据资产"旧版客户数据库"',
+                    ip: '192.168.1.100',
+                    status: 'success',
+                    module: '数据资产管理',
+                    extra: '归档位置: 备份服务器02/archive/2025-05-25'
+                }
+            ];
+
+            // 渲染日志表格
+            function renderAuditTable(logs) {
+                const tableBody = document.getElementById('audit-table-body');
+                tableBody.innerHTML = '';
+
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    row.className = 'table-row transition cursor-pointer';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.time}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="log-type ${getTypeClass(log.type)}">${getTypeLabel(log.type)}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${log.user}</td>
+                        <td class="px-6 py-4 text-sm text-gray-300 max-w-xs truncate">${log.content}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.ip}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="${getStatusClass(log.status)}">${getStatusLabel(log.status)}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-blue-400 hover:text-blue-300 detail-btn" data-id="${log.id}">查看详情</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // 添加详情按钮事件
+                document.querySelectorAll('.detail-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.getAttribute('data-id'));
+                        showLogDetail(id);
+                    });
+                });
+            }
+
+            // 辅助函数
+            function getTypeLabel(type) {
+                const labels = {
+                    'login': '登录',
+                    'data': '数据操作',
+                    'system': '系统操作',
+                    'security': '安全事件'
+                };
+                return labels[type] || type;
+            }
+
+            function getTypeClass(type) {
+                const classes = {
+                    'login': 'bg-purple-500',
+                    'data': 'bg-blue-500',
+                    'system': 'bg-yellow-500',
+                    'security': 'bg-red-500'
+                };
+                return classes[type] || 'bg-gray-500';
+            }
+
+            function getStatusLabel(status) {
+                const labels = {
+                    'success': '成功',
+                    'failed': '失败',
+                    'warning': '警告'
+                };
+                return labels[status] || status;
+            }
+
+            function getStatusClass(status) {
+                const classes = {
+                    'success': 'badge bg-green-500',
+                    'failed': 'badge bg-red-500',
+                    'warning': 'badge bg-yellow-500'
+                };
+                return classes[status] || 'badge bg-gray-500';
+            }
+
+            // 初始化表格
+            renderAuditTable(sampleLogs);
+
+            // 筛选按钮事件
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    
+                    // 更新按钮状态
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white');
+                        b.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                    });
+                    this.classList.add('bg-blue-600', 'text-white');
+                    this.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                    
+                    // 筛选日志
+                    if (type === 'all') {
+                        renderAuditTable(sampleLogs);
+                    } else {
+                        const filteredLogs = sampleLogs.filter(log => log.type === type);
+                        renderAuditTable(filteredLogs);
+                    }
+                });
+            });
+
+            // 搜索功能
+            document.getElementById('search-input').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                if (searchTerm === '') {
+                    renderAuditTable(sampleLogs);
+                } else {
+                    const filteredLogs = sampleLogs.filter(log => 
+                        log.content.toLowerCase().includes(searchTerm) || 
+                        log.user.toLowerCase().includes(searchTerm) ||
+                        log.ip.toLowerCase().includes(searchTerm)
+                    );
+                    renderAuditTable(filteredLogs);
+                }
+            });
+
+            // 导出按钮事件
+            document.getElementById('export-btn').addEventListener('click', function() {
+                alert('正在开发中：导出日志功能');
+            });
+
+            // 显示日志详情
+            function showLogDetail(id) {
+                const log = sampleLogs.find(l => l.id === id);
+                if (!log) return;
+
+                document.getElementById('detail-time').textContent = log.time;
+                document.getElementById('detail-type').innerHTML = `<span class="log-type ${getTypeClass(log.type)}">${getTypeLabel(log.type)}</span>`;
+                document.getElementById('detail-user').textContent = log.user;
+                document.getElementById('detail-ip').textContent = log.ip;
+                document.getElementById('detail-status').innerHTML = `<span class="${getStatusClass(log.status)}">${getStatusLabel(log.status)}</span>`;
+                document.getElementById('detail-module').textContent = log.module;
+                document.getElementById('detail-content').textContent = log.content;
+                document.getElementById('detail-extra').textContent = log.extra;
+
+                document.getElementById('detail-modal').classList.remove('hidden');
+            }
+
+            // 关闭详情模态框
+            const detailModal = document.getElementById('detail-modal');
+            document.getElementById('close-detail-btn').addEventListener('click', function() {
+                detailModal.classList.add('hidden');
+            });
+            document.getElementById('close-detail-btn2').addEventListener('click', function() {
+                detailModal.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
