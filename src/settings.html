@@ -1,0 +1,479 @@
+
+<!-- integrated_security_data_management_system_7053/frontend/settings.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>系统设置 - 一体化安全数据管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .setting-card {
+            transition: all 0.3s ease;
+        }
+        .setting-card:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航栏 -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <button onclick="window.history.back()" class="mr-4 p-2 rounded-full hover:bg-gray-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                    系统设置
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="save-settings" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    保存设置
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main>
+            <!-- 设置选项卡 -->
+            <div class="flex border-b border-gray-700 mb-8">
+                <button id="general-tab" class="px-6 py-3 font-medium tab-button active">通用设置</button>
+                <button id="security-tab" class="px-6 py-3 font-medium tab-button">安全设置</button>
+                <button id="notification-tab" class="px-6 py-3 font-medium tab-button">通知设置</button>
+                <button id="system-tab" class="px-6 py-3 font-medium tab-button">系统配置</button>
+            </div>
+
+            <!-- 通用设置 -->
+            <div id="general-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- 语言和区域 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">语言和区域</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="language" class="block text-sm font-medium mb-2">系统语言</label>
+                                <select id="language" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="zh-CN" selected>简体中文</option>
+                                    <option value="en-US">English</option>
+                                    <option value="ja-JP">日本語</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="timezone" class="block text-sm font-medium mb-2">时区设置</label>
+                                <select id="timezone" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="Asia/Shanghai" selected>(UTC+08:00) 北京，重庆，香港特别行政区，乌鲁木齐</option>
+                                    <option value="America/New_York">(UTC-05:00) 东部时间(美国和加拿大)</option>
+                                    <option value="Europe/London">(UTC+00:00) 都柏林，爱丁堡，里斯本，伦敦</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="date-format" class="block text-sm font-medium mb-2">日期格式</label>
+                                <select id="date-format" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="YYYY-MM-DD" selected>2025-05-28</option>
+                                    <option value="MM/DD/YYYY">05/28/2025</option>
+                                    <option value="DD/MM/YYYY">28/05/2025</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 界面设置 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">界面设置</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input id="dark-mode" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="dark-mode" class="ml-3 block text-sm font-medium">深色模式</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="compact-mode" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600">
+                                <label for="compact-mode" class="ml-3 block text-sm font-medium">紧凑模式</label>
+                            </div>
+                            <div>
+                                <label for="theme-color" class="block text-sm font-medium mb-2">主题颜色</label>
+                                <select id="theme-color" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="blue" selected>蓝色</option>
+                                    <option value="purple">紫色</option>
+                                    <option value="green">绿色</option>
+                                    <option value="red">红色</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 安全设置 (默认隐藏) -->
+            <div id="security-section" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- 密码策略 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">密码策略</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="min-password-length" class="block text-sm font-medium mb-2">最小密码长度</label>
+                                <input type="number" id="min-password-length" min="6" max="32" value="8" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="flex items-center">
+                                <input id="require-uppercase" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="require-uppercase" class="ml-3 block text-sm font-medium">必须包含大写字母</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="require-special-char" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="require-special-char" class="ml-3 block text-sm font-medium">必须包含特殊字符</label>
+                            </div>
+                            <div>
+                                <label for="password-expiry" class="block text-sm font-medium mb-2">密码有效期</label>
+                                <select id="password-expiry" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="30">30天</option>
+                                    <option value="60">60天</option>
+                                    <option value="90" selected>90天</option>
+                                    <option value="180">180天</option>
+                                    <option value="never">永不过期</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 登录安全 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">登录安全</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input id="enable-mfa" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600">
+                                <label for="enable-mfa" class="ml-3 block text-sm font-medium">启用多因素认证</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="enable-captcha" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="enable-captcha" class="ml-3 block text-sm font-medium">登录时验证码验证</label>
+                            </div>
+                            <div>
+                                <label for="failed-attempts" class="block text-sm font-medium mb-2">最大失败尝试次数</label>
+                                <input type="number" id="failed-attempts" min="3" max="10" value="5" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="lockout-time" class="block text-sm font-medium mb-2">账户锁定时间</label>
+                                <select id="lockout-time" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="5">5分钟</option>
+                                    <option value="15">15分钟</option>
+                                    <option value="30" selected>30分钟</option>
+                                    <option value="60">1小时</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 通知设置 (默认隐藏) -->
+            <div id="notification-section" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- 系统通知 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">系统通知</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input id="notify-system-updates" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="notify-system-updates" class="ml-3 block text-sm font-medium">系统更新通知</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="notify-maintenance" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="notify-maintenance" class="ml-3 block text-sm font-medium">维护计划通知</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="notify-backup" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="notify-backup" class="ml-3 block text-sm font-medium">备份完成通知</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 安全通知 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">安全通知</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input id="notify-login" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="notify-login" class="ml-3 block text-sm font-medium">登录通知</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="notify-password-change" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="notify-password-change" class="ml-3 block text-sm font-medium">密码修改通知</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="notify-unusual-activity" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="notify-unusual-activity" class="ml-3 block text-sm font-medium">异常活动通知</label>
+                            </div>
+                            <div>
+                                <label for="notification-method" class="block text-sm font-medium mb-2">通知方式</label>
+                                <select id="notification-method" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="email" selected>电子邮件</option>
+                                    <option value="sms">短信</option>
+                                    <option value="both">电子邮件和短信</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统配置 (默认隐藏) -->
+            <div id="system-section" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- 系统日志 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">系统日志</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="log-level" class="block text-sm font-medium mb-2">日志级别</label>
+                                <select id="log-level" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="error">错误</option>
+                                    <option value="warning">警告</option>
+                                    <option value="info" selected>信息</option>
+                                    <option value="debug">调试</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="log-retention" class="block text-sm font-medium mb-2">日志保留时间</label>
+                                <select id="log-retention" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="7">7天</option>
+                                    <option value="14">14天</option>
+                                    <option value="30" selected>30天</option>
+                                    <option value="90">90天</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="enable-audit-log" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600" checked>
+                                <label for="enable-audit-log" class="ml-3 block text-sm font-medium">启用审计日志</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 高级设置 -->
+                    <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg setting-card">
+                        <h2 class="text-lg font-bold mb-4">高级设置</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="session-timeout" class="block text-sm font-medium mb-2">会话超时时间</label>
+                                <select id="session-timeout" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                                    <option value="15">15分钟</option>
+                                    <option value="30">30分钟</option>
+                                    <option value="60" selected>1小时</option>
+                                    <option value="120">2小时</option>
+                                    <option value="never">永不过期</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="auto-update" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600">
+                                <label for="auto-update" class="ml-3 block text-sm font-medium">自动更新系统</label>
+                            </div>
+                            <div>
+                                <label for="api-timeout" class="block text-sm font-medium mb-2">API超时时间(秒)</label>
+                                <input type="number" id="api-timeout" min="5" max="60" value="30" class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 form-input focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 重置设置 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg mb-8">
+                    <h2 class="text-lg font-bold mb-4 text-red-400">危险区域</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <button id="reset-settings" class="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                恢复默认设置
+                            </button>
+                            <p class="text-xs text-gray-400 mt-2">这将重置所有系统设置为默认值</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 70, density: { enable: true, value_area: 800 } },
+                    color: { value: "#3b82f6" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#3b82f6", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+
+            // 选项卡切换
+            const tabs = {
+                'general-tab': 'general-section',
+                'security-tab': 'security-section',
+                'notification-tab': 'notification-section',
+                'system-tab': 'system-section'
+            };
+
+            Object.entries(tabs).forEach(([tabId, sectionId]) => {
+                const tab = document.getElementById(tabId);
+                const section = document.getElementById(sectionId);
+
+                tab.addEventListener('click', function() {
+                    // 更新选项卡状态
+                    document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // 隐藏所有内容区
+                    Object.values(tabs).forEach(id => {
+                        document.getElementById(id).classList.add('hidden');
+                    });
+
+                    // 显示当前内容区
+                    section.classList.remove('hidden');
+                });
+            });
+
+            // 保存设置按钮
+            document.getElementById('save-settings').addEventListener('click', function() {
+                alert('系统设置已保存');
+            });
+
+            // 恢复默认设置
+            document.getElementById('reset-settings').addEventListener('click', function() {
+                if (confirm('确定要恢复所有系统设置为默认值吗？此操作不可撤销。')) {
+                    alert('正在开发中：恢复默认设置功能');
+                }
+            });
+
+            // 从localStorage加载设置
+            function loadSettings() {
+                const settings = JSON.parse(localStorage.getItem('systemSettings')) || {};
+                
+                // 通用设置
+                if (settings.language) document.getElementById('language').value = settings.language;
+                if (settings.timezone) document.getElementById('timezone').value = settings.timezone;
+                if (settings.dateFormat) document.getElementById('date-format').value = settings.dateFormat;
+                if (settings.darkMode !== undefined) document.getElementById('dark-mode').checked = settings.darkMode;
+                if (settings.compactMode !== undefined) document.getElementById('compact-mode').checked = settings.compactMode;
+                if (settings.themeColor) document.getElementById('theme-color').value = settings.themeColor;
+                
+                // 安全设置
+                if (settings.minPasswordLength) document.getElementById('min-password-length').value = settings.minPasswordLength;
+                if (settings.requireUppercase !== undefined) document.getElementById('require-uppercase').checked = settings.requireUppercase;
+                if (settings.requireSpecialChar !== undefined) document.getElementById('require-special-char').checked = settings.requireSpecialChar;
+                if (settings.passwordExpiry) document.getElementById('password-expiry').value = settings.passwordExpiry;
+                if (settings.enableMfa !== undefined) document.getElementById('enable-mfa').checked = settings.enableMfa;
+                if (settings.enableCaptcha !== undefined) document.getElementById('enable-captcha').checked = settings.enableCaptcha;
+                if (settings.failedAttempts) document.getElementById('failed-attempts').value = settings.failedAttempts;
+                if (settings.lockoutTime) document.getElementById('lockout-time').value = settings.lockoutTime;
+                
+                // 通知设置
+                if (settings.notifySystemUpdates !== undefined) document.getElementById('notify-system-updates').checked = settings.notifySystemUpdates;
+                if (settings.notifyMaintenance !== undefined) document.getElementById('notify-maintenance').checked = settings.notifyMaintenance;
+                if (settings.notifyBackup !== undefined) document.getElementById('notify-backup').checked = settings.notifyBackup;
+                if (settings.notifyLogin !== undefined) document.getElementById('notify-login').checked = settings.notifyLogin;
+                if (settings.notifyPasswordChange !== undefined) document.getElementById('notify-password-change').checked = settings.notifyPasswordChange;
+                if (settings.notifyUnusualActivity !== undefined) document.getElementById('notify-unusual-activity').checked = settings.notifyUnusualActivity;
+                if (settings.notificationMethod) document.getElementById('notification-method').value = settings.notificationMethod;
+                
+                // 系统配置
+                if (settings.logLevel) document.getElementById('log-level').value = settings.logLevel;
+                if (settings.logRetention) document.getElementById('log-retention').value = settings.logRetention;
+                if (settings.enableAuditLog !== undefined) document.getElementById('enable-audit-log').checked = settings.enableAuditLog;
+                if (settings.sessionTimeout) document.getElementById('session-timeout').value = settings.sessionTimeout;
+                if (settings.autoUpdate !== undefined) document.getElementById('auto-update').checked = settings.autoUpdate;
+                if (settings.apiTimeout) document.getElementById('api-timeout').value = settings.apiTimeout;
+            }
+
+            // 保存设置到localStorage
+            function saveSettings() {
+                const settings = {
+                    // 通用设置
+                    language: document.getElementById('language').value,
+                    timezone: document.getElementById('timezone').value,
+                    dateFormat: document.getElementById('date-format').value,
+                    darkMode: document.getElementById('dark-mode').checked,
+                    compactMode: document.getElementById('compact-mode').checked,
+                    themeColor: document.getElementById('theme-color').value,
+                    
+                    // 安全设置
+                    minPasswordLength: document.getElementById('min-password-length').value,
+                    requireUppercase: document.getElementById('require-uppercase').checked,
+                    requireSpecialChar: document.getElementById('require-special-char').checked,
+                    passwordExpiry: document.getElementById('password-expiry').value,
+                    enableMfa: document.getElementById('enable-mfa').checked,
+                    enableCaptcha: document.getElementById('enable-captcha').checked,
+                    failedAttempts: document.getElementById('failed-attempts').value,
+                    lockoutTime: document.getElementById('lockout-time').value,
+                    
+                    // 通知设置
+                    notifySystemUpdates: document.getElementById('notify-system-updates').checked,
+                    notifyMaintenance: document.getElementById('notify-maintenance').checked,
+                    notifyBackup: document.getElementById('notify-backup').checked,
+                    notifyLogin: document.getElementById('notify-login').checked,
+                    notifyPasswordChange: document.getElementById('notify-password-change').checked,
+                    notifyUnusualActivity: document.getElementById('notify-unusual-activity').checked,
+                    notificationMethod: document.getElementById('notification-method').value,
+                    
+                    // 系统配置
+                    logLevel: document.getElementById('log-level').value,
+                    logRetention: document.getElementById('log-retention').value,
+                    enableAuditLog: document.getElementById('enable-audit-log').checked,
+                    sessionTimeout: document.getElementById('session-timeout').value,
+                    autoUpdate: document.getElementById('auto-update').checked,
+                    apiTimeout: document.getElementById('api-timeout').value
+                };
+
+                localStorage.setItem('systemSettings', JSON.stringify(settings));
+            }
+
+            // 初始化加载设置
+            loadSettings();
+
+            // 保存按钮事件
+            document.getElementById('save-settings').addEventListener('click', function() {
+                saveSettings();
+                alert('系统设置已保存');
+            });
+        });
+    </script>
+</body>
+</html>
