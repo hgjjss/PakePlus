@@ -1,32 +1,173 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+<!-- integrated_security_data_management_system_7053/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>一体化安全数据管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Noto+Sans+SC:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .nav-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-hover:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航栏 -->
+        <header class="flex justify-between items-center mb-12">
+            <div class="flex items-center">
+                <div class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                    一体化安全数据管理系统
+                </div>
             </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
+            <div class="flex items-center space-x-4">
+                <div id="user-info" class="hidden">
+                    <span class="font-medium" id="username-display"></span>
+                    <button onclick="logout()" class="ml-4 px-3 py-1 bg-red-500 rounded-md hover:bg-red-600 transition">退出</button>
+                </div>
+                <button id="login-btn" onclick="window.location.href='auth.html'" class="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition">
+                    登录/注册
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 数据资产管理 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg transition card-hover" onclick="window.location.href='data-management.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="text-4xl mr-4">📊</div>
+                        <h2 class="text-xl font-bold">数据资产管理</h2>
+                    </div>
+                    <p class="text-gray-300 mb-4">集中管理企业敏感数据资产，提供分类、分级和生命周期管理功能</p>
+                    <div class="text-blue-400 flex justify-end">进入功能 →</div>
+                </div>
+
+                <!-- 身份认证 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg transition card-hover" onclick="window.location.href='auth.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="text-4xl mr-4">🔑</div>
+                        <h2 class="text-xl font-bold">身份认证与访问控制</h2>
+                    </div>
+                    <p class="text-gray-300 mb-4">多因素认证和基于角色的访问控制(RBAC)系统</p>
+                    <div class="text-blue-400 flex justify-end">进入功能 →</div>
+                </div>
+
+                <!-- 数据加密 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg transition card-hover" onclick="window.location.href='encryption.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="text-4xl mr-4">🔒</div>
+                        <h2 class="text-xl font-bold">数据加密</h2>
+                    </div>
+                    <p class="text-gray-300 mb-4">支持多种加密算法，提供密钥管理和加密操作</p>
+                    <div class="text-blue-400 flex justify-end">进入功能 →</div>
+                </div>
+
+                <!-- 安全审计 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg transition card-hover" onclick="window.location.href='audit.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="text-4xl mr-4">📝</div>
+                        <h2 class="text-xl font-bold">安全审计</h2>
+                    </div>
+                    <p class="text-gray-300 mb-4">记录所有关键操作，提供审计追踪和报告功能</p>
+                    <div class="text-blue-400 flex justify-end">进入功能 →</div>
+                </div>
+
+                <!-- 数据备份 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg transition card-hover" onclick="window.location.href='backup.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="text-4xl mr-4">💾</div>
+                        <h2 class="text-xl font-bold">数据备份与恢复</h2>
+                    </div>
+                    <p class="text-gray-300 mb-4">定期备份数据，支持快速恢复和灾难恢复</p>
+                    <div class="text-blue-400 flex justify-end">进入功能 →</div>
+                </div>
+
+                <!-- 系统监控 -->
+                <div class="bg-gray-800 bg-opacity-70 rounded-xl p-6 shadow-lg transition card-hover" onclick="window.location.href='monitoring.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="text-4xl mr-4">📈</div>
+                        <h2 class="text-xl font-bold">系统监控</h2>
+                    </div>
+                    <p class="text-gray-300 mb-4">实时监控系统状态和性能指标</p>
+                    <div class="text-blue-400 flex justify-end">进入功能 →</div>
+                </div>
             </div>
         </main>
-    </body>
+
+        <!-- 页脚 -->
+        <footer class="mt-16 text-center text-gray-500 text-sm">
+            <p>© 2025 一体化安全数据管理系统. 保留所有权利.</p>
+            <p class="mt-2">
+                <a href="settings.html" class="hover:text-blue-400">系统设置</a> | 
+                <a href="help.html" class="hover:text-blue-400">帮助中心</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            
+            // 粒子效果初始化
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#3b82f6" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#3b82f6", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+        });
+
+        function checkLoginStatus() {
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                document.getElementById('login-btn').classList.add('hidden');
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('username-display').textContent = JSON.parse(user).username;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.reload();
+        }
+    </script>
+</body>
 </html>
